@@ -11,7 +11,11 @@ osascript -e 'tell application "System Preferences" to quit'
 sudo -v
 
 # Keep-alive: update existing `sudo` time stamp until `.macos` has finished
-while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+while true; do
+    sudo -n true
+    sleep 60
+    kill -0 "$$" || exit
+done 2>/dev/null &
 
 ###############################################################################
 # General UI/UX                                                               #
@@ -168,7 +172,7 @@ defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 # sudo defaults write /Library/Preferences/com.apple.loginwindow showInputMenu -bool true
 
 # Set the timezone; see `sudo systemsetup -listtimezones` for other values
-sudo systemsetup -settimezone "Europe/London" > /dev/null
+sudo systemsetup -settimezone "Europe/London" >/dev/null
 
 # Stop iTunes from responding to the keyboard media keys
 #launchctl unload -w /System/Library/LaunchAgents/com.apple.rcd.plist 2> /dev/null
@@ -355,6 +359,9 @@ defaults write com.apple.finder FXInfoPanesExpanded -dict \
     General -bool true \
     OpenWith -bool true \
     Privileges -bool true
+
+# Remove Recent Tags from Finder - https://derflounder.wordpress.com/2021/11/29/disabling-recent-tags-in-the-finder-window-sidebar/
+defaults write com.apple.Finder ShowRecentTags -bool false
 
 ###############################################################################
 # Dock, Dashboard, and hot corners                                            #
@@ -940,6 +947,6 @@ for app in "Activity Monitor" \
     "Tweetbot" \
     "Twitter" \
     "iCal"; do
-    killall "${app}" &> /dev/null
+    killall "${app}" &>/dev/null
 done
 echo "Done. Note that some of these changes require a logout/restart to take effect."
