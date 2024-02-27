@@ -52,5 +52,5 @@ cask "powershell"
 # Go
 brew "go"
 
-# alt-tab - https://alt-tab-macos.netlify.app/
-cask "alt-tab"
+# alt-tab - https://alt-tab-macos.netlify.app/ - installed using Installomator
+# cask "alt-tab"
