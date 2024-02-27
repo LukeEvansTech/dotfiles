@@ -41,7 +41,7 @@ brew "hashicorp/tap/terraform"
 # brew "mkpasswd"
 brew "jq"
 brew "gomplate"
-# brew "ansible"
+brew "ansible"
 
 # [GitHub - mas-cli/mas: :package: Mac App Store command line interface](https://github.com/mas-cli/mas)
 brew "mas"
