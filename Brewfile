@@ -3,6 +3,17 @@
 # This file is used along with the `brew bundle` command to ensure that required packages and apps are installed.
 # Also can be used to ensure that any package/apps that were installed as experimentation are uninstalled from the system.
 # If you are starting such a file on a machine where you have already installed some apps using brew, then use `brew bundle dump` to create this file and avoid starting from scratch
+#
+# Install these Homebrew formula globally:
+#   brew bundle --no-lock --file=~/.Brewfile
+#
+# List all installed Homebrew formula not in this Brewfile:
+#   brew bundle cleanup --file=~/.Brewfile
+#
+# Uninstall all installed Homebrew formula not in this Brewfile:
+#   brew bundle cleanup --force --file=~/.Brewfile
+#
+# Full instructions: https://github.com/Homebrew/homebrew-bundle
 
 tap "homebrew/bundle"
 
@@ -29,8 +40,22 @@ brew "coreutils"
 brew 'git'
 brew "grep"
 brew "openssh"
+brew "bash"
 brew 'wget'
+brew "python" # Latest Python
+brew "pipenv" # Node-style local modules for Python
 # brew "screen"
+
+# Node.js
+brew "node"
+
+# https://github.com/patrickvane/shfmt?tab=readme-ov-file - Had to restart Terminal to take effect
+brew "shfmt"
+
+# https://github.com/junegunn/fzf
+brew "fzf"
+
+# Useful command line tools
 
 # Hashicorp
 tap "hashicorp/tap"
@@ -48,6 +73,15 @@ brew "mas"
 
 # PowerShell
 cask "powershell"
+
+# BitWarden CLI
+brew "bitwarden-cli"
+
+# Azure CLI
+brew "azure-cli"
+
+# Duti - https://alexpeattie.com/blog/associate-source-code-files-with-editor-in-macos-using-duti/
+brew "duti"
 
 # Go
 brew "go"
