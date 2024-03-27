@@ -64,7 +64,7 @@ brew "hashicorp/tap/terraform"
 
 # Sidero Labs
 tap "siderolabs/tap"
-brew "hashicorp/tap/talosctl"
+brew "siderolabs/tap/talosctl"
 
 # Packer - https://vmware-samples.github.io/packer-examples-for-vsphere/getting-started/requirements/#__tabbed_2_3
 # brew "mkpasswd"
