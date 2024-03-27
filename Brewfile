@@ -86,6 +86,7 @@ brew "azure-cli"
 
 # Duti - https://alexpeattie.com/blog/associate-source-code-files-with-editor-in-macos-using-duti/
 brew "duti"
+brew "python-yq"
 
 # Go
 brew "go"
