@@ -29,6 +29,8 @@ tap "homebrew/cask-fonts"
 cask "font-fira-code"
 cask "font-fira-code-nerd-font"
 cask "font-fira-mono-nerd-font"
+cask "font-jetbrains-mono"
+cask "font-jetbrains-mono-nerd-font"
 
 # Install GNU core utilities (those that come with macOS are outdated).
 # Don’t forget to add `$(brew --prefix coreutils)/libexec/gnubin` to `$PATH`.
@@ -66,6 +68,10 @@ brew "hashicorp/tap/terraform"
 tap "siderolabs/tap"
 brew "siderolabs/tap/talosctl"
 
+## Better Discord
+tap "dracula/install"
+cask "dracula-betterdiscord"
+
 # Packer - https://vmware-samples.github.io/packer-examples-for-vsphere/getting-started/requirements/#__tabbed_2_3
 # brew "mkpasswd"
 brew "jq"
@@ -80,6 +86,9 @@ cask "powershell"
 
 # BitWarden CLI
 brew "bitwarden-cli"
+
+# https://www.warp.dev/ - The fastest way to share code and run terminal commands from your desktop 
+cask "warp"
 
 # Azure CLI
 brew "azure-cli"
