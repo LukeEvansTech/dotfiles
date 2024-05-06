@@ -2,19 +2,19 @@
   "entries": {
     "tap": {
       "homebrew/bundle": {
-        "revision": "f46a1db7ef9f2e017f6b01b7737e2af275270cfc"
+        "revision": "bfeed4463404184c561460dcd7edaa0f7fe497c0"
       },
       "homebrew/autoupdate": {
         "revision": "2ede6c004c3264b3af6c3d7ae657ce47ea685032"
       },
       "homebrew/cask-fonts": {
-        "revision": "b415b1b34f996ced02785721a2fd30e5c5ea21e4"
+        "revision": "c14bf80205c63b5eb5bd213221e50f348c5e7d83"
       },
       "hashicorp/tap": {
-        "revision": "abecf9b5263cf5ee0e214654951d56e21c1204b5"
+        "revision": "29bc5f3ec636a6133e7b49fb3c4fdb2ac93e9451"
       },
       "siderolabs/tap": {
-        "revision": "ffacbc5a2af7107f9d932240687a72ff3edaf0f6"
+        "revision": "473aa056d97ac476bd43f9b435831ad8de19bb79"
       },
       "dracula/install": {
         "revision": "dbede24766c355fa0973594cbbf9c6ece86bea18"
@@ -311,11 +311,11 @@
         }
       },
       "hashicorp/tap/packer": {
-        "version": "1.10.0",
+        "version": "1.10.2",
         "bottle": false
       },
       "hashicorp/tap/terraform": {
-        "version": "1.7.1",
+        "version": "1.8.0",
         "bottle": false
       },
       "jq": {
@@ -901,7 +901,7 @@
         }
       },
       "siderolabs/tap/talosctl": {
-        "version": "1.6.7",
+        "version": "1.7.0",
         "bottle": false
       },
       "duti": {
@@ -1031,7 +1031,7 @@
         }
       },
       "warp": {
-        "version": "0.2024.04.09.08.01.stable_01",
+        "version": "0.2024.04.16.08.02.stable_00",
         "options": {
           "full_name": "warp"
         }

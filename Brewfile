@@ -84,6 +84,9 @@ brew "mas"
 # PowerShell
 cask "powershell"
 
+# Raycast - https://raycast.com/ - Longer term install using Installomator once it's working
+cask "raycast"
+
 # BitWarden CLI
 brew "bitwarden-cli"
 
