@@ -1,0 +1,47 @@
+# Sensitive data
+*.key
+*.pem
+*.gpg
+*.env
+**/secrets/*
+**/.secrets/*
+**/token*
+**/credentials*
+
+# OS specific files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.directory
+
+# Editor specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.\#*
+\#*\#
+*.sublime-*
+
+# Logs
+*.log
+logs/
+
+# Compiled files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Package files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
