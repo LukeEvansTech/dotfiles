@@ -205,9 +205,6 @@ info "Configuring file system settings..."
 execute "defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true" \
   "Disabled .DS_Store creation on network volumes"
 
-# Disable temporary file sharing via AirDrop
-execute "defaults write com.apple.NetworkBrowser DisableAirDrop -bool true" \
-  "Disabled AirDrop"
 
 # =============================================================================
 # FINDER CUSTOMIZATION
@@ -228,7 +225,7 @@ execute "defaults write com.apple.finder ShowStatusBar -bool true" \
 execute "defaults write com.apple.finder ShowPathbar -bool true" \
   "Enabled Finder path bar"
 
-execute "defaults write com.apple.finder _FXShowPosixPathInTitle -bool true" \
+execute "defaults write com.apple.finder _FXShowPosixPathInTitle -bool false" \
   "Enabled POSIX path in Finder title"
 
 # Set the size of icons on the desktop (only if plist exists)
@@ -257,32 +254,59 @@ fi
 execute "chflags nohidden ~/" "Made home folder visible"
 
 # =============================================================================
-# DOCK & LAUNCHPAD
+# DOCK & LAUNCHPAD - NO ANIMATIONS, FIXED SIZE
 # =============================================================================
-info "Configuring Dock & Launchpad..."
+info "Configuring Dock with fixed size icons and no animations..."
 
 # Close Dock before modifying
 close_app "Dock"
 
-# Dock configuration
-execute "defaults write com.apple.dock tilesize -int 48" \
-  "Set Dock icon size to 48px"
+# Dock size configuration - fixed 64px size with no magnification
+execute "defaults write com.apple.dock tilesize -int 64" \
+  "Set Dock icon size to 64px"
 
-execute "defaults write com.apple.dock magnification -bool true" \
-  "Enabled Dock magnification"
+execute "defaults write com.apple.dock magnification -bool false" \
+  "Disabled Dock magnification"
 
-execute "defaults write com.apple.dock largesize -int 64" \
-  "Set magnified Dock icon size to 64px"
-
-# Dock behavior and animations
+# Disable ALL Dock animations
 execute "defaults write com.apple.dock autohide -bool true" \
   "Enabled Dock auto-hide"
 
 execute "defaults write com.apple.dock autohide-delay -float 0" \
   "Removed Dock auto-hide delay"
 
+execute "defaults write com.apple.dock autohide-time-modifier -float 0" \
+  "Made Dock show/hide transition instant"
+
 execute "defaults write com.apple.dock launchanim -bool false" \
-  "Disabled Dock launch animation"
+  "Disabled app launch animation"
+
+execute "defaults write com.apple.dock expose-animation-duration -float 0.1" \
+  "Minimized Mission Control animation duration"
+
+execute "defaults write com.apple.dock springboard-show-duration -float 0" \
+  "Disabled Launchpad show animation"
+  
+execute "defaults write com.apple.dock springboard-hide-duration -float 0" \
+  "Disabled Launchpad hide animation"
+
+execute "defaults write com.apple.dock springboard-page-duration -float 0" \
+  "Disabled Launchpad page switching animation"
+
+# Use scale effect (less animated) instead of genie
+execute "defaults write com.apple.dock mineffect -string 'scale'" \
+  "Changed minimize effect to scale (less animated)"
+
+# Disable animation when opening applications from the Dock
+execute "defaults write com.apple.dock no-bouncing -bool true" \
+  "Disabled bouncing animation for Dock icons"
+
+# Minimize windows into application icon
+execute "defaults write com.apple.dock minimize-to-application -bool true" \
+  "Set windows to minimize into app icon"
+
+info "Dock configured with fixed 64px icons and no animations. Restart will apply changes."
+
 
 # =============================================================================
 # SPOTLIGHT PREFERENCES
