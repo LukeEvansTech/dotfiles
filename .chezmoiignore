@@ -1,0 +1,5 @@
+README.md
+LICENSE
+*.swp
+.git/
+.DS_Store

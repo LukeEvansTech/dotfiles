@@ -1,0 +1,532 @@
+#!/bin/bash
+
+# =============================================================================
+# macOS System Defaults Configuration
+# 
+# Managed by chezmoi - Runs once per machine
+#
+# Purpose:
+#   Configures macOS system preferences using `defaults` command-line utility.
+#   Targets visual, performance, and usability enhancements for developers and
+#   power users. Includes safety checks and post-apply instructions.
+#
+# Usage:
+#   chezmoi apply   # Apply configuration (script runs automatically)
+#   ./run_once_macos-defaults.sh  # Direct execution (requires admin privileges)
+#
+# Security Note:
+#   Review all commands before execution. Many changes require restarting apps
+#   or the system. Uncomment sections as needed for your workflow.
+# =============================================================================
+
+# --- Functions --------------------------------------------------------------
+log() { echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"; }
+error() { log "ERROR: $1" >&2; }
+warn() { log "WARNING: $1" >&2; }
+info() { log "INFO: $1"; }
+success() { log "SUCCESS: $1"; }
+
+# Command execution with error handling
+execute() {
+  local cmd="$1"
+  local msg="$2"
+  local quiet="${3:-false}"
+  
+  if [ "$quiet" = "true" ]; then
+    eval "$cmd" >/dev/null 2>&1
+  else
+    eval "$cmd" 2>/dev/null
+  fi
+  
+  local result=$?
+  if [ $result -eq 0 ]; then
+    [ -n "$msg" ] && success "$msg"
+    return 0
+  else
+    [ -n "$msg" ] && warn "Failed: $msg"
+    return 1
+  fi
+}
+
+# Application management
+close_app() {
+  local app="$1"
+  if pgrep "$app" >/dev/null 2>&1; then
+    info "Closing $app"
+    osascript -e "tell application \"$app\" to quit" 2>/dev/null
+    sleep 1
+  fi
+}
+
+backup_settings() {
+  local backup_dir="$HOME/.macos_defaults_backup/$(date +%Y%m%d_%H%M%S)"
+  info "Creating settings backup at $backup_dir"
+  mkdir -p "$backup_dir"
+  defaults domains 2>/dev/null | tr ',' '\n' | while read domain; do
+    [ -n "$domain" ] && defaults export "$domain" "$backup_dir/$domain.plist" 2>/dev/null
+  done
+  success "Backup complete"
+}
+
+# --- Safety Checks ----------------------------------------------------------
+if [ "$(uname -s)" != "Darwin" ]; then
+  error "This script only runs on macOS systems."
+  exit 1
+fi
+
+# Check macOS version
+macos_version=$(sw_vers -productVersion)
+macos_major=$(echo "$macos_version" | cut -d. -f1)
+
+if [ "$macos_major" -lt 11 ]; then
+  warn "Some settings may not work on macOS $macos_version (older than Big Sur 11.0)"
+fi
+
+# Check for Apple Silicon vs Intel
+if [ "$(uname -m)" = "arm64" ]; then
+  is_apple_silicon=true
+else
+  is_apple_silicon=false
+fi
+
+# --- Confirmation and Backup -------------------------------------------------
+echo "This script will configure macOS system defaults."
+echo "macOS Version: $macos_version ($([ "$is_apple_silicon" = true ] && echo "Apple Silicon" || echo "Intel"))"
+echo 
+echo "This will modify system settings and may restart some applications."
+read -p "Do you want to continue? (y/n) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  info "Operation canceled."
+  exit 0
+fi
+
+# Backup current settings
+backup_settings
+
+# --- Pre-Setup ---------------------------------------------------------------
+# Close System Preferences and authenticate
+info "Closing System Preferences/Settings"
+close_app "System Preferences"
+close_app "System Settings"
+
+info "Requesting administrative privileges"
+sudo -v  # Authenticate early
+# Keep-alive: update existing `sudo` time stamp until script has finished
+while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+
+# =============================================================================
+# SYSTEM-WIDE CONFIGURATION
+# =============================================================================
+
+# --- Security & Privacy ------------------------------------------------------
+info "Configuring security & privacy settings..."
+
+# Enable firewall and stealth mode
+execute "sudo defaults write /Library/Preferences/com.apple.alf globalstate -int 2" \
+  "Enabled firewall"
+
+execute "sudo defaults write /Library/Preferences/com.apple.alf stealthenabled -int 1" \
+  "Enabled stealth mode"
+
+# Enable application firewall logging
+execute "sudo defaults write /Library/Preferences/com.apple.alf loggingenabled -int 1" \
+  "Enabled firewall logging"
+
+# Disable remote login (SSH) - with timeout protection
+info "Attempting to disable remote login (SSH)"
+
+# First check if remote login is already disabled
+if sudo systemsetup -getremotelogin 2>/dev/null | grep -q "Remote Login: Off"; then
+  success "Remote login is already disabled"
+else
+  # Try the primary method with timeout
+  (timeout 5 sudo systemsetup -setremotelogin off >/dev/null 2>&1) &
+  pid=$!
+  
+  # Wait for completion with timeout
+  wait_time=0
+  while kill -0 $pid 2>/dev/null && [ $wait_time -lt 5 ]; do
+    sleep 1
+    wait_time=$((wait_time + 1))
+  done
+  
+  # Kill process if it's still running
+  if kill -0 $pid 2>/dev/null; then
+    kill $pid 2>/dev/null
+    warn "Remote login command timed out. Using alternative method..."
+    
+    # Alternative method using launchctl
+    if sudo launchctl unload -w /System/Library/LaunchDaemons/ssh.plist 2>/dev/null; then
+      success "Disabled remote login via launchctl"
+    else
+      warn "Could not disable remote login automatically. Please disable it manually in System Settings > Sharing > Remote Login"
+    fi
+  else
+    success "Disabled remote login (SSH)"
+  fi
+fi
+
+# --- System UI/UX ------------------------------------------------------------
+info "Configuring system UI/UX settings..."
+
+# Enable 24-hour time format
+execute "defaults write NSGlobalDomain AppleICUForce24HourTime -bool true" \
+  "Enabled 24-hour time format"
+
+# Show battery percentage in menu bar (if applicable)
+if pmset -g batt 2>/dev/null | grep -q "Battery Power"; then
+  execute "defaults write com.apple.menuextra.battery ShowPercent -string \"YES\"" \
+    "Enabled battery percentage in menu bar"
+fi
+
+# Always show scroll bars + disable scroll bounce
+execute "defaults write NSGlobalDomain AppleShowScrollBars -string \"Always\"" \
+  "Set scroll bars to always show"
+
+execute "defaults write NSGlobalDomain AppleScrollAnimationEnabled -bool false" \
+  "Disabled scroll bounce animation"
+
+# Disable window animations + increase resize speed
+execute "defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false" \
+  "Disabled window animations"
+
+execute "defaults write NSGlobalDomain NSWindowResizeTime -float 0.001" \
+  "Increased window resize speed"
+
+# Disable "Are you sure?" popups for permanent deletions
+execute "defaults write com.apple.finder WarnOnEmptyTrash -bool false" \
+  "Disabled empty trash warning"
+
+# --- File System -------------------------------------------------------------
+info "Configuring file system settings..."
+
+# Disable creation of .DS_Store files on network volumes
+execute "defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true" \
+  "Disabled .DS_Store creation on network volumes"
+
+# Disable temporary file sharing via AirDrop
+execute "defaults write com.apple.NetworkBrowser DisableAirDrop -bool true" \
+  "Disabled AirDrop"
+
+# =============================================================================
+# FINDER CUSTOMIZATION
+# =============================================================================
+info "Customizing Finder settings..."
+
+# Make sure Finder is closed before modifying its preferences
+close_app "Finder"
+
+# Set Finder to list view by default
+execute "defaults write com.apple.finder FXPreferredViewStyle -string \"Nlsv\"" \
+  "Set Finder to list view by default"
+
+# Show status/path bars and POSIX path in title
+execute "defaults write com.apple.finder ShowStatusBar -bool true" \
+  "Enabled Finder status bar"
+
+execute "defaults write com.apple.finder ShowPathbar -bool true" \
+  "Enabled Finder path bar"
+
+execute "defaults write com.apple.finder _FXShowPosixPathInTitle -bool true" \
+  "Enabled POSIX path in Finder title"
+
+# Set the size of icons on the desktop (only if plist exists)
+if [ -f ~/Library/Preferences/com.apple.finder.plist ]; then
+  execute "/usr/libexec/PlistBuddy -c \"Set :DesktopViewSettings:IconViewSettings:iconSize 48\" ~/Library/Preferences/com.apple.finder.plist" \
+    "Set desktop icon size to 48px" || warn "Could not set desktop icon size"
+fi
+
+# Enable quick look text selection
+execute "defaults write com.apple.finder QLUserGenerousTextSelection -bool true" \
+  "Enabled Quick Look text selection"
+
+# Show "Quit Finder" option
+execute "defaults write com.apple.finder QuitMenuItem -bool true" \
+  "Enabled Quit Finder menu item"
+
+# Show the ~/Library folder - FIXED
+info "Making Library folder visible"
+execute "chflags nohidden ~/Library" "Unhid Library folder"
+# Only try to remove the attribute if it exists
+if xattr -l ~/Library 2>/dev/null | grep -q "com.apple.FinderInfo"; then
+  execute "xattr -d com.apple.FinderInfo ~/Library" "Removed FinderInfo attribute from Library"
+fi
+
+# Show the user's home folder
+execute "chflags nohidden ~/" "Made home folder visible"
+
+# =============================================================================
+# DOCK & LAUNCHPAD
+# =============================================================================
+info "Configuring Dock & Launchpad..."
+
+# Close Dock before modifying
+close_app "Dock"
+
+# Dock configuration
+execute "defaults write com.apple.dock tilesize -int 48" \
+  "Set Dock icon size to 48px"
+
+execute "defaults write com.apple.dock magnification -bool true" \
+  "Enabled Dock magnification"
+
+execute "defaults write com.apple.dock largesize -int 64" \
+  "Set magnified Dock icon size to 64px"
+
+# Dock behavior and animations
+execute "defaults write com.apple.dock autohide -bool true" \
+  "Enabled Dock auto-hide"
+
+execute "defaults write com.apple.dock autohide-delay -float 0" \
+  "Removed Dock auto-hide delay"
+
+execute "defaults write com.apple.dock launchanim -bool false" \
+  "Disabled Dock launch animation"
+
+# =============================================================================
+# SPOTLIGHT PREFERENCES
+# =============================================================================
+
+# Make sure indexing is enabled for the main volume
+execute "sudo mdutil -i on / 2>/dev/null" \
+  "Enabled Spotlight indexing for main volume" "true"
+
+# =============================================================================
+# KEYBOARD SETTINGS
+# =============================================================================
+info "Configuring keyboard settings..."
+
+# Set key repeat rate and delay
+execute "defaults write NSGlobalDomain KeyRepeat -int 2" \
+  "Set key repeat rate"
+
+execute "defaults write NSGlobalDomain InitialKeyRepeat -int 15" \
+  "Set key repeat delay"
+
+# Enable full keyboard access for all controls
+execute "defaults write NSGlobalDomain AppleKeyboardUIMode -int 3" \
+  "Enabled full keyboard access for controls"
+
+# Disable automatic capitalization
+execute "defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false" \
+  "Disabled automatic capitalization"
+
+# Disable period substitution
+execute "defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false" \
+  "Disabled automatic period substitution"
+
+# Disable smart quotes
+execute "defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false" \
+  "Disabled smart quotes"
+
+# Disable auto-text substitution
+execute "defaults write NSGlobalDomain NSAutomaticTextCompletionEnabled -bool false" \
+  "Disabled auto-text substitution"
+
+# =============================================================================
+# TRACKPAD & INPUT
+# =============================================================================
+info "Configuring trackpad & input settings..."
+
+# Force Click + haptic feedback
+execute "defaults write NSGlobalDomain com.apple.trackpad.forceClick -bool true" \
+  "Enabled Force Click"
+
+execute "defaults write com.apple.AppleMultitouchTrackpad ForceSuppressed -bool false" \
+  "Enabled haptic feedback"
+
+# Trackpad speed adjustments
+execute "defaults write NSGlobalDomain com.apple.trackpad.scaling -float 1.5" \
+  "Set trackpad speed to 1.5"
+
+# Three finger drag (accessibility feature)
+execute "defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -bool true" \
+  "Enabled three-finger drag"
+
+# =============================================================================
+# NETWORK & PERFORMANCE
+# =============================================================================
+info "Configuring network & performance settings..."
+
+# Disable Bonjour multicast advertising
+execute "sudo defaults write /Library/Preferences/com.apple.mDNSResponder.plist NoMulticastAdvertisements -bool true" \
+  "Disabled Bonjour multicast advertising"
+
+# Tune TCP keepalive settings for better networking
+execute "sudo sysctl -w net.inet.tcp.keepidle=30000" \
+  "Set TCP keepidle to 30000"
+
+execute "sudo sysctl -w net.inet.tcp.keepintvl=30000" \
+  "Set TCP keepintvl to 30000"
+
+# =============================================================================
+# ENERGY & POWER MANAGEMENT
+# =============================================================================
+info "Configuring energy & power management..."
+
+# Only applicable for MacBooks - skip on desktop Macs
+if pmset -g batt 2>/dev/null | grep -q "Battery Power"; then
+  info "Detected battery - applying power management settings for MacBook"
+
+  # Battery power settings
+  execute "sudo pmset -b displaysleep 5" \
+    "Set display sleep to 5 minutes on battery"
+  
+  execute "sudo pmset -b sleep 15" \
+    "Set system sleep to 15 minutes on battery"
+  
+  execute "sudo pmset -b disksleep 10" \
+    "Set disk sleep to 10 minutes on battery"
+  
+  # AC power settings
+  execute "sudo pmset -c displaysleep 15" \
+    "Set display sleep to 15 minutes on AC power"
+  
+  execute "sudo pmset -c sleep 0" \
+    "Disabled system sleep on AC power"
+  
+  execute "sudo pmset -c disksleep 0" \
+    "Disabled disk sleep on AC power"
+  
+  # Disable sudden motion sensor for SSDs (modern Macs)
+  execute "sudo pmset -a sms 0" \
+    "Disabled sudden motion sensor (SSD protection)"
+fi
+
+# =============================================================================
+# APP-SPECIFIC SETTINGS
+# =============================================================================
+
+# --- Safari -----------------------------------------------------------------
+info "Configuring Safari settings..."
+
+# Make sure Safari is closed before modifying its preferences
+close_app "Safari"
+
+# Try to set Safari preferences with error handling
+execute "defaults write com.apple.Safari IncludeDevelopMenu -bool true" \
+  "Enabled Safari developer menu" || warn "Safari developer menu setting failed"
+
+execute "defaults write com.apple.Safari SendDoNotTrackHTTPHeader -bool true" \
+  "Enabled Safari Do Not Track" || warn "Safari Do Not Track setting failed"
+
+execute "defaults write com.apple.Safari ShowTabBar -bool true" \
+  "Enabled Safari tab bar" || warn "Safari tab bar setting failed"
+
+# --- Activity Monitor -------------------------------------------------------
+info "Configuring Activity Monitor settings..."
+
+close_app "Activity Monitor"
+
+execute "defaults write com.apple.ActivityMonitor ShowCategory -int 0" \
+  "Set Activity Monitor to show all processes"
+
+execute "defaults write com.apple.ActivityMonitor SortColumn -string \"CPUUsage\"" \
+  "Set Activity Monitor to sort by CPU usage"
+
+# --- Mac App Store and Software Updates -------------------------------------
+info "Configuring App Store & Software Update settings..."
+
+execute "defaults write com.apple.appstore WebKitDeveloperExtras -bool true" \
+  "Enabled WebKit Developer Tools in App Store"
+
+execute "defaults write com.apple.appstore ShowDebugMenu -bool true" \
+  "Enabled debug menu in App Store"
+
+# Software Update
+execute "defaults write com.apple.SoftwareUpdate AutomaticCheckEnabled -bool true" \
+  "Enabled automatic update check"
+
+execute "defaults write com.apple.SoftwareUpdate ScheduleFrequency -int 1" \
+  "Set update check frequency to daily"
+
+execute "defaults write com.apple.SoftwareUpdate AutomaticDownload -int 1" \
+  "Enabled automatic download of updates"
+
+execute "defaults write com.apple.SoftwareUpdate CriticalUpdateInstall -int 1" \
+  "Enabled installation of security updates"
+
+execute "defaults write com.apple.SoftwareUpdate ConfigDataInstall -int 1" \
+  "Enabled automatic download of purchased apps"
+
+execute "defaults write com.apple.commerce AutoUpdate -bool true" \
+  "Enabled app auto-update"
+
+execute "defaults write com.apple.commerce AutoUpdateRestartRequired -bool true" \
+  "Allowed automatic restart for updates"
+
+# --- Terminal Configuration -------------------------------------------------
+info "Configuring Terminal settings..."
+
+close_app "Terminal"
+
+execute "defaults write com.apple.Terminal \"Default Window Settings\" -string \"Pro\"" \
+  "Set Terminal default profile to Pro" || warn "Terminal profile setting failed"
+
+execute "defaults write com.apple.Terminal ShowLineMarks -int 0" \
+  "Disabled Terminal line marks" || warn "Terminal line marks setting failed"
+
+# --- Screenshot Settings ----------------------------------------------------
+info "Configuring screenshot settings..."
+
+# Create screenshot directory if it doesn't exist
+execute "mkdir -p ~/Desktop/Screenshots" \
+  "Created Screenshots directory"
+
+# Set screenshot location
+execute "defaults write com.apple.screencapture location -string \"${HOME}/Desktop/Screenshots\"" \
+  "Set screenshot location to ~/Desktop/Screenshots"
+
+# Set screenshot format
+execute "defaults write com.apple.screencapture type -string \"png\"" \
+  "Set screenshot format to PNG"
+
+# Disable shadow in screenshots
+execute "defaults write com.apple.screencapture disable-shadow -bool true" \
+  "Disabled shadows in screenshots"
+
+# =============================================================================
+# POST-CONFIGURATION
+# =============================================================================
+
+# --- Cleanup & Restart -------------------------------------------------------
+info "Clearing system cache"
+execute "sudo purge" "Cleared system cache" || warn "Failed to clear system cache"
+
+# Create a configuration report
+report_file="$HOME/Desktop/macos_config_report.txt"
+info "Creating configuration report at $report_file"
+
+echo "macOS System Configuration Report" > "$report_file"
+echo "Generated: $(date)" >> "$report_file"
+echo "macOS Version: $macos_version" >> "$report_file"
+echo "Architecture: $([ "$is_apple_silicon" = true ] && echo "Apple Silicon" || echo "Intel")" >> "$report_file"
+echo "" >> "$report_file"
+echo "Configuration Summary:" >> "$report_file"
+echo "- Security: Firewall enabled, stealth mode enabled, remote login disabled" >> "$report_file"
+echo "- UI/UX: 24-hour time, always show scroll bars, disabled animations" >> "$report_file"
+echo "- Finder: List view, path bar, status bar, POSIX path in title" >> "$report_file"
+echo "- Dock: Auto-hide, magnification, animation disabled" >> "$report_file"
+echo "- Input: Force click, three-finger drag, adjusted trackpad speed" >> "$report_file"
+echo "- Network: Bonjour advertising disabled, TCP keepalive optimized" >> "$report_file"
+echo "- Apps: Safari developer tools, Activity Monitor sorting, App Store debug" >> "$report_file"
+echo "- Updates: Daily checks, automatic downloads and installation" >> "$report_file"
+echo "" >> "$report_file"
+echo "Settings Backup: $HOME/.macos_defaults_backup/" >> "$report_file"
+
+info "Restarting system processes"
+# Restart affected applications safely
+for app in "Finder" "Dock" "SystemUIServer"; do
+  killall "$app" >/dev/null 2>&1 && success "Restarted $app" || warn "Failed to restart $app"
+  sleep 1
+done
+
+# Final message
+echo ""
+echo "✅ Configuration complete!"
+echo "📝 Configuration report saved to: $report_file"
+echo ""
+echo "Some changes require a logout or restart to take full effect."
+echo "Backup of original settings saved to: $HOME/.macos_defaults_backup/"
+echo ""
