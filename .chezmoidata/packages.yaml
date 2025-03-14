@@ -1,0 +1,33 @@
+packages:
+  darwin:
+    brews:
+      - "bash" # Bourne Again SHell, Unix command interpreter
+      - "bitwarden-cli" # Command-line interface for Bitwarden password manager
+      - "coreutils" # GNU core utilities
+      - "duti" # Tool to select default applications for document types
+      - "fzf" # Command-line fuzzy finder
+      - "git" # Distributed version control system
+      - "go" # Open source programming language
+      - "grep" # GNU grep, egrep and fgrep
+      - "mise" # Development tool version manager (formerly rtx)
+      - "moreutils" # Collection of Unix tools
+      - "nmap" # Port scanning utility for large networks
+      - "openssh" # OpenBSD freely-licensed SSH connectivity tools
+      - "pwgen" # Password generator
+      - "python@3.13" # Interpreted, interactive, object-oriented programming language
+      - "rclone" # Manage cloud storage
+      - "restic" # Fast, secure, efficient backup program
+      - "shfmt" # Format shell programs
+      - "wget" # Internet file retriever
+    casks:
+      - "1password-cli" # Command-line interface for 1Password
+      - "aptakube" # Kubernetes UI manager
+      - "cleanshot" # Screenshot and screen recording tool
+      - "font-fira-code" # Monospace font with programming ligatures
+      - "font-fira-code-nerd-font" # Patched font with icons
+      - "font-fira-mono-nerd-font" # Patched font with icons
+      - "font-jetbrains-mono" # Monospace font for developers
+      - "font-jetbrains-mono-nerd-font" # Patched font with icons
+      - "pppc-utility" # Privacy Preferences Policy Control (PPPC) Utility - https://github.com/jamf/PPPC-Utility
+      - "powershell" # Microsoft PowerShell
+      - "viscosity" # OpenVPN client
