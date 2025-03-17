@@ -2,3 +2,4 @@ export EDITOR="code --wait"
 export VISUAL="code --wait"
 export PATH=$PATH:$HOME/go/bin
 eval "$(/opt/homebrew/bin/brew shellenv)"
+eval "$(mise activate zsh)"
