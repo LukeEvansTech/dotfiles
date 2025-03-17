@@ -14,7 +14,7 @@ packages:
       - "nmap" # Port scanning utility for large networks
       - "openssh" # OpenBSD freely-licensed SSH connectivity tools
       - "pwgen" # Password generator
-      - "python@3.13" # Interpreted, interactive, object-oriented programming language
+      - "python" # Interpreted, interactive, object-oriented programming language
       - "rclone" # Manage cloud storage
       - "restic" # Fast, secure, efficient backup program
       - "shfmt" # Format shell programs
