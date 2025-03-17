@@ -13,6 +13,7 @@ packages:
       - "moreutils" # Collection of Unix tools
       - "nmap" # Port scanning utility for large networks
       - "openssh" # OpenBSD freely-licensed SSH connectivity tools
+      - "pipx" # Install and run Python applications in isolated environments
       - "pwgen" # Password generator
       - "python" # Interpreted, interactive, object-oriented programming language
       - "rclone" # Manage cloud storage
