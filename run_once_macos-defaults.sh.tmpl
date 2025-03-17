@@ -254,6 +254,29 @@ fi
 execute "chflags nohidden ~/" "Made home folder visible"
 
 # =============================================================================
+# FINDER SIDEBAR CONFIGURATION
+# =============================================================================
+
+info "Configuring Finder sidebar (removing iCloud Drive & Tags)..."
+
+  
+  # Disable iCloud Drive in sidebar via defaults
+  execute "defaults write com.apple.finder ShowiCloudDesktop -bool false" \
+    "Hid iCloud Desktop in sidebar"
+    
+  execute "defaults write com.apple.finder ShowiCloudDriveinSidebar -bool false" \
+    "Attempted to hide iCloud Drive in sidebar"
+    
+  execute "defaults write com.apple.finder SidebarShowingiCloudDesktop -bool false" \
+    "Attempted to hide iCloud Desktop in sidebar"
+    
+  execute "defaults write com.apple.finder ShowRecentTags -bool false" \
+    "Attempted to hide Tags in sidebar"
+
+  # These settings require a Finder restart
+  info "Sidebar configuration applied, requires Finder restart"
+
+# =============================================================================
 # DOCK & LAUNCHPAD - NO ANIMATIONS, FIXED SIZE
 # =============================================================================
 info "Configuring Dock with fixed size icons and no animations..."
