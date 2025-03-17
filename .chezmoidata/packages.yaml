@@ -22,6 +22,7 @@ packages:
     casks:
       - "1password-cli" # Command-line interface for 1Password
       - "aptakube" # Kubernetes UI manager
+      - "autopkgr" # Automate the download and installation of PKG files
       - "cleanshot" # Screenshot and screen recording tool
       - "font-fira-code" # Monospace font with programming ligatures
       - "font-fira-code-nerd-font" # Patched font with icons
