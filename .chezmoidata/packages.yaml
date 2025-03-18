@@ -19,6 +19,7 @@ packages:
       - "rclone" # Manage cloud storage
       - "restic" # Fast, secure, efficient backup program
       - "shfmt" # Format shell programs
+      - "sops" # Secrets
       - "wget" # Internet file retriever
     casks:
       - "1password-cli" # Command-line interface for 1Password
