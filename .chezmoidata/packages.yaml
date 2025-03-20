@@ -10,6 +10,7 @@ packages:
       - "go" # Open source programming language
       - "grep" # GNU grep, egrep and fgrep
       - "mise" # Development tool version manager (formerly rtx)
+      - "minijinja-cli" # Command-line interface for MiniJinja
       - "moreutils" # Collection of Unix tools
       - "nmap" # Port scanning utility for large networks
       - "openssh" # OpenBSD freely-licensed SSH connectivity tools
