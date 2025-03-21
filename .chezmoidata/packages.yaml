@@ -1,6 +1,7 @@
 packages:
   darwin:
     brews:
+      - "atuin" # Atuin replaces your existing shell history with a SQLite database, and records additional context for your commands.
       - "bash" # Bourne Again SHell, Unix command interpreter
       - "bitwarden-cli" # Command-line interface for Bitwarden password manager
       - "coreutils" # GNU core utilities
