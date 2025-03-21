@@ -214,9 +214,24 @@ info "Customizing Finder settings..."
 # Make sure Finder is closed before modifying its preferences
 close_app "Finder"
 
-# Set Finder to list view by default
-execute "defaults write com.apple.finder FXPreferredViewStyle -string \"Nlsv\"" \
-  "Set Finder to list view by default"
+
+# Set Finder default view to List View for all windows
+# FXPreferredViewStyle options: 
+# - Nlsv = List View
+# - icnv = Icon View
+# - clmv = Column View
+# - glyv = Gallery View
+defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+
+# Set new Finder windows to open in the Home folder
+defaults write com.apple.finder NewWindowTarget -string "PfHm"
+defaults write com.apple.finder NewWindowTargetPath -string "file://${HOME}/"
+
+# Ensure List View settings are applied to all folders
+# This resets the view settings for all folders to use the global preference
+/usr/libexec/PlistBuddy -c "Delete :StandardViewSettings:ExtendedListViewSettings" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null
+/usr/libexec/PlistBuddy -c "Delete :StandardViewSettings:ListViewSettings" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null
+/usr/libexec/PlistBuddy -c "Delete :FK_StandardViewSettings" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null
 
 # Show status/path bars and POSIX path in title
 execute "defaults write com.apple.finder ShowStatusBar -bool true" \
@@ -225,8 +240,8 @@ execute "defaults write com.apple.finder ShowStatusBar -bool true" \
 execute "defaults write com.apple.finder ShowPathbar -bool true" \
   "Enabled Finder path bar"
 
-execute "defaults write com.apple.finder _FXShowPosixPathInTitle -bool false" \
-  "Enabled POSIX path in Finder title"
+# execute "defaults write com.apple.finder _FXShowPosixPathInTitle -bool false" \
+#   "Enabled POSIX path in Finder title"
 
 # Set the size of icons on the desktop (only if plist exists)
 if [ -f ~/Library/Preferences/com.apple.finder.plist ]; then
@@ -252,6 +267,25 @@ fi
 
 # Show the user's home folder
 execute "chflags nohidden ~/" "Made home folder visible"
+
+# Make folders appear at the top when sorting on the Desktop
+defaults write com.apple.finder _FXSortFoldersFirstOnDesktop -bool true
+
+# Make folders appear at the top when sorting in all Finder windows
+defaults write com.apple.finder _FXSortFoldersFirst -bool true
+
+
+# Make Open/Save dialog windows always expand to show all details by default
+# This shows the sidebar, path bar, and expands to a larger size
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
+
+# Make Open/Save dialog windows expand for all applications (including App Store apps)
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
+
+# Restart affected applications or log out and back in for changes to take effect
+# Note: Some applications may need to be restarted to see the changes
 
 # =============================================================================
 # FINDER SIDEBAR CONFIGURATION
