@@ -1,7 +1,6 @@
 powershell:
   modules:
     # Core modules
-    - "PSReadLine"        # Enhanced command-line editing
     - "posh-git"          # Git integration for PowerShell
     - "oh-my-posh"        # Prompt theme engine
     - "Terminal-Icons"    # File and folder icons
