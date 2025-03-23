@@ -599,8 +599,23 @@ echo "Settings Backup: $HOME/.macos_defaults_backup/" >> "$report_file"
 info "Restarting system processes"
 # Restart affected applications safely
 for app in "Finder" "Dock" "SystemUIServer"; do
-  killall "$app" >/dev/null 2>&1 && success "Restarted $app" || warn "Failed to restart $app"
-  sleep 1
+  # First kill the application
+  killall "$app" >/dev/null 2>&1
+  
+  # Wait a bit longer for the process to terminate
+  sleep 2
+  
+  # For Dock and SystemUIServer, they should restart automatically via launchd
+  # but we'll give them a little more time and check
+  if [ "$app" = "Finder" ]; then
+    # Explicitly restart Finder
+    open -a "$app" && success "Restarted $app" || warn "Failed to restart $app"
+  else
+    # For Dock and SystemUIServer, wait a bit longer for automatic restart
+    sleep 3
+    # Check if they're running again (they should be if auto-restarted)
+    pgrep "$app" >/dev/null 2>&1 && success "Restarted $app" || warn "Failed to restart $app"
+  fi
 done
 
 # Final message
