@@ -75,6 +75,17 @@ If you prefer to set up manually:
 
 - `dot_bashrc`: Bash shell configuration (fallback)
 
+### PowerShell Configuration
+
+- `run_once_install-powershell.sh.tmpl`: Installs PowerShell on macOS
+- `run_onchange_install-powershell-modules.sh.tmpl`: Shell wrapper that executes PowerShell to install and update modules
+- `dot_config/powershell/Microsoft.PowerShell_profile.ps1.tmpl`: PowerShell profile with:
+  - Module imports (PSReadLine, posh-git, oh-my-posh, Terminal-Icons, PSFzf)
+  - Custom prompt configuration
+  - Aliases and helper functions
+  - OS-specific settings
+- `.chezmoidata/powershell.yaml`: List of PowerShell modules to install
+
 ### Git Configuration
 
 - `dot_gitconfig`: Global Git configuration
@@ -94,12 +105,12 @@ If you prefer to set up manually:
 
 ### Package Management
 
-- `.chezmoidata/packages.yaml`: Defines packages to install via Homebrew
+- `.chezmoidata/homebrew.yaml`: Defines packages to install via Homebrew
   - CLI tools and utilities
   - Applications via Homebrew Casks
   - Fonts
 
-- `run_onchange_darwin-install-packages.sh.tmpl`: Installs and manages packages defined in packages.yaml
+- `run_onchange_darwin-install-homebrew.sh.tmpl`: Installs and manages packages defined in homebrew.yaml
   - Automatically installs new packages
   - Removes packages no longer in the list
   - Preserves system packages and dependencies
@@ -148,7 +159,11 @@ chezmoi apply
 
 ### Adding New Packages
 
-Edit `.chezmoidata/packages.yaml` to add new Homebrew packages or casks.
+Edit `.chezmoidata/homebrew.yaml` to add new Homebrew packages or casks.
+
+### Adding PowerShell Modules
+
+Edit `.chezmoidata/powershell.yaml` to add new PowerShell modules. The modules will be installed automatically when you run `chezmoi apply`.
 
 ### Modifying macOS Defaults
 
@@ -166,7 +181,17 @@ Edit `run_once_macos-defaults.sh.tmpl` to change macOS system preferences.
 
 ```bash
 chezmoi cd
-# Update packages.yaml with new packages
+# Update homebrew.yaml with new packages
+chezmoi apply
+```
+
+### Updating PowerShell Modules
+
+```bash
+# Update all PowerShell modules
+pwsh -Command "Update-Module"
+
+# Or run chezmoi apply to update based on your configuration
 chezmoi apply
 ```
 
@@ -177,6 +202,10 @@ If you encounter issues:
 1. Check the output of `chezmoi apply --verbose`
 2. Verify that prerequisites are installed
 3. Ensure 1Password CLI is authenticated for NFS mount functionality
+4. For PowerShell module issues:
+   - Check PowerShell execution policy: `Get-ExecutionPolicy`
+   - Verify module availability: `Get-Module -ListAvailable`
+   - Check for errors in the PowerShell profile: `Test-Path $PROFILE`
 
 ## License
 

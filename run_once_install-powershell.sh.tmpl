@@ -1,0 +1,89 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+
+# =============================================================================
+# PowerShell Installation for macOS
+# 
+# Managed by chezmoi - Runs once per machine
+#
+# Purpose:
+#   Installs PowerShell on macOS using Homebrew and sets up the necessary
+#   directory structure for PowerShell configuration.
+#
+# Requirements:
+#   - Homebrew
+#
+# Usage:
+#   This script runs automatically when chezmoi applies changes.
+#
+#   Manual execution:
+#   ./run_once_install-powershell.sh
+# =============================================================================
+
+# --- Functions --------------------------------------------------------------
+log() { echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"; }
+error() { log "ERROR: $1" >&2; }
+warn() { log "WARNING: $1" >&2; }
+info() { log "INFO: $1"; }
+success() { log "SUCCESS: $1"; }
+
+# Command execution with error handling
+execute() {
+  local cmd="$1"
+  local msg="$2"
+  local quiet="${3:-false}"
+  
+  if [ "$quiet" = "true" ]; then
+    eval "$cmd" >/dev/null 2>&1
+  else
+    eval "$cmd" 2>/dev/null
+  fi
+  
+  local result=$?
+  if [ $result -eq 0 ]; then
+    [ -n "$msg" ] && success "$msg"
+    return 0
+  else
+    [ -n "$msg" ] && warn "Failed: $msg"
+    return 1
+  fi
+}
+
+# --- Check if PowerShell is already installed -------------------------------
+if command -v pwsh >/dev/null 2>&1; then
+  info "PowerShell is already installed."
+  pwsh_version=$(pwsh -Version | head -n 1)
+  info "Current version: $pwsh_version"
+else
+  info "PowerShell is not installed. Installing via Homebrew..."
+  
+  # Check if Homebrew is installed
+  if ! command -v brew >/dev/null 2>&1; then
+    error "Homebrew is not installed. Please install Homebrew first."
+    exit 1
+  fi
+  
+  # Install PowerShell
+  execute "brew install --cask powershell" "Installing PowerShell"
+  
+  if ! command -v pwsh >/dev/null 2>&1; then
+    error "PowerShell installation failed."
+    exit 1
+  fi
+  
+  pwsh_version=$(pwsh -Version | head -n 1)
+  success "PowerShell installed successfully. Version: $pwsh_version"
+fi
+
+# --- Create PowerShell configuration directories ---------------------------
+info "Setting up PowerShell configuration directories..."
+
+# Create the PowerShell configuration directory
+execute "mkdir -p ~/.config/powershell" "Created PowerShell configuration directory"
+
+# --- Final message ---------------------------------------------------------
+info "PowerShell installation and setup complete."
+info "PowerShell profile will be managed by chezmoi at: ~/.config/powershell/Microsoft.PowerShell_profile.ps1"
+info "PowerShell modules will be installed when you run: chezmoi apply"
+
+{{ end -}}

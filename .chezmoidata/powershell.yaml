@@ -1,0 +1,17 @@
+powershell:
+  modules:
+    # Core modules
+    - "PSReadLine"        # Enhanced command-line editing
+    - "posh-git"          # Git integration for PowerShell
+    - "oh-my-posh"        # Prompt theme engine
+    - "Terminal-Icons"    # File and folder icons
+    
+    # Utility modules
+    - "PSScriptAnalyzer"  # Static code analyzer
+    - "ImportExcel"       # Excel manipulation
+    - "PSFzf"             # Fuzzy finder integration
+    
+    # Microsoft modules
+    - "PnP.PowerShell"
+    - "Microsoft.PowerShell.SecretManagement" # Secret management
+    - "Microsoft.PowerShell.SecretStore"      # Secret store backend

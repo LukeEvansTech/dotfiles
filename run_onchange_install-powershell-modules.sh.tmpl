@@ -1,0 +1,194 @@
+#!/bin/bash
+# hash: {{ include ".chezmoidata/powershell.yaml" | sha256sum }}
+
+# =============================================================================
+# PowerShell Module Management
+# 
+# Managed by chezmoi - Runs when the template or data changes
+#
+# Purpose:
+#   Installs and updates PowerShell modules defined in .chezmoidata/powershell.yaml
+#
+# Requirements:
+#   - PowerShell 7+ (pwsh)
+#
+# Usage:
+#   This script runs automatically when chezmoi applies changes and the script
+#   or its data source has changed.
+# =============================================================================
+
+# --- Functions --------------------------------------------------------------
+log() { echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"; }
+error() { log "ERROR: $1" >&2; }
+warn() { log "WARNING: $1" >&2; }
+info() { log "INFO: $1"; }
+success() { log "SUCCESS: $1"; }
+
+# Check if PowerShell is installed
+if ! command -v pwsh >/dev/null 2>&1; then
+  error "PowerShell is not installed. Please install it first."
+  info "You can install it with: brew install --cask powershell"
+  exit 1
+fi
+
+# Get the directory of this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Path to the PowerShell script
+PS_SCRIPT="${SCRIPT_DIR}/install-powershell-modules.ps1"
+
+# Create the PowerShell script from the template
+cat > "$PS_SCRIPT" << 'PWSH_SCRIPT'
+# =============================================================================
+# PowerShell Module Management
+# 
+# Managed by chezmoi - Runs when the template or data changes
+#
+# Purpose:
+#   Installs and updates PowerShell modules defined in .chezmoidata/powershell.yaml
+#
+# Requirements:
+#   - PowerShell 7+ (pwsh)
+# =============================================================================
+
+# Script preferences
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue' # Speeds up downloads
+
+# Helper functions
+function Write-Status {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Message,
+        
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('Info', 'Success', 'Warning', 'Error')]
+        [string]$Type = 'Info'
+    )
+    
+    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    
+    switch ($Type) {
+        'Info'    { Write-Host "[$timestamp] INFO: $Message" -ForegroundColor Cyan }
+        'Success' { Write-Host "[$timestamp] SUCCESS: $Message" -ForegroundColor Green }
+        'Warning' { Write-Host "[$timestamp] WARNING: $Message" -ForegroundColor Yellow }
+        'Error'   { Write-Host "[$timestamp] ERROR: $Message" -ForegroundColor Red }
+    }
+}
+
+function Test-ModuleInstalled {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Name
+    )
+    
+    return (Get-Module -ListAvailable -Name $Name)
+}
+
+function Install-RequiredModule {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+        
+        [Parameter(Mandatory = $false)]
+        [switch]$Update
+    )
+    
+    try {
+        if (Test-ModuleInstalled -Name $Name) {
+            if ($Update) {
+                Write-Status "Updating module: $Name" -Type Info
+                Update-Module -Name $Name -Force -ErrorAction Stop
+                Write-Status "Module updated: $Name" -Type Success
+            }
+            else {
+                Write-Status "Module already installed: $Name" -Type Info
+            }
+        }
+        else {
+            Write-Status "Installing module: $Name" -Type Info
+            Install-Module -Name $Name -Scope CurrentUser -Force -AllowClobber -ErrorAction Stop
+            Write-Status "Module installed: $Name" -Type Success
+        }
+    }
+    catch {
+        Write-Status "Failed to install/update module $Name`: $_" -Type Error
+    }
+}
+
+# Check if running as administrator (platform-specific)
+$isAdmin = $false
+if ($IsWindows) {
+    try {
+        $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+        if (-not $isAdmin) {
+            Write-Status "Not running as administrator. Some modules may fail to install." -Type Warning
+        }
+    }
+    catch {
+        Write-Status "Could not determine administrator status: $_" -Type Warning
+    }
+}
+elseif ($IsMacOS) {
+    # On macOS, check if running with sudo
+    $isAdmin = (id -u) -eq 0
+    if (-not $isAdmin) {
+        Write-Status "Not running as root. Some modules may require elevated privileges." -Type Warning
+    }
+}
+elseif ($IsLinux) {
+    # On Linux, check if running as root
+    $isAdmin = (id -u) -eq 0
+    if (-not $isAdmin) {
+        Write-Status "Not running as root. Some modules may require elevated privileges." -Type Warning
+    }
+}
+
+# Check PowerShellGet version and update if needed
+Write-Status "Checking PowerShellGet module..." -Type Info
+$psGetVersion = (Get-Module PowerShellGet -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1).Version
+
+if ($psGetVersion -lt [Version]'2.0.0') {
+    Write-Status "Updating PowerShellGet module..." -Type Info
+    Install-Module -Name PowerShellGet -Force -AllowClobber -Scope CurrentUser
+    Write-Status "PowerShellGet updated. Please restart PowerShell and run this script again." -Type Warning
+    exit
+}
+
+# Ensure PSGallery is trusted
+Write-Status "Configuring PSGallery as trusted repository..." -Type Info
+if ((Get-PSRepository -Name PSGallery).InstallationPolicy -ne 'Trusted') {
+    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+}
+
+# Install/update modules from the YAML configuration
+Write-Status "Processing PowerShell modules..." -Type Info
+
+$modules = @(
+{{ range .powershell.modules }}    "{{ . }}"
+{{ end }})
+
+foreach ($module in $modules) {
+    Install-RequiredModule -Name $module -Update
+}
+
+Write-Status "PowerShell module management complete!" -Type Success
+PWSH_SCRIPT
+
+# Make the PowerShell script executable
+chmod +x "$PS_SCRIPT"
+
+# Execute the PowerShell script
+info "Executing PowerShell module installation script..."
+pwsh -File "$PS_SCRIPT"
+result=$?
+
+# Clean up
+rm -f "$PS_SCRIPT"
+
+if [ $result -eq 0 ]; then
+  success "PowerShell module installation completed successfully."
+else
+  error "PowerShell module installation failed."
+  exit 1
+fi

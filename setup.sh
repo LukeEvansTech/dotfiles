@@ -115,6 +115,7 @@ section "Installing Required CLI Tools"
 pre_chezmoi_packages=(
   "chezmoi"
   "1password-cli"
+  "powershell"  # PowerShell for cross-platform scripting
   # Add more packages here as needed
 )
 

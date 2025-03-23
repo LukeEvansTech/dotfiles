@@ -1,0 +1,119 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+
+# Exit on errors during package installation, but handle errors during cleanup
+set -e
+
+echo "Installing and updating Homebrew packages..."
+
+# Create a temporary Brewfile
+brew bundle --file=/dev/stdin <<EOF
+{{ range .packages.darwin.brews -}}
+brew {{ . | quote }}
+{{ end -}}
+{{ range .packages.darwin.casks -}}
+cask {{ . | quote }}
+{{ end -}}
+EOF
+
+echo "Tidying up packages no longer in homebrew.yaml..."
+
+# Define system-level packages that should never be removed
+SYSTEM_PACKAGES=(
+  "ca-certificates"
+  "chezmoi"
+  "curl"
+  "git"
+  "openssl"
+  "vim"
+  "zsh"
+  # Add other system packages here
+)
+
+# Get list of desired packages from homebrew.yaml
+DESIRED_BREWS=(
+{{ range .packages.darwin.brews -}}
+  {{ . | quote }}
+{{ end -}}
+)
+
+DESIRED_CASKS=(
+{{ range .packages.darwin.casks -}}
+  {{ . | quote }}
+{{ end -}}
+)
+
+# Get currently installed packages
+INSTALLED_BREWS=($(brew list --formula -1))
+INSTALLED_CASKS=($(brew list --cask -1))
+
+# Function to check if a package is in an array
+contains() {
+  local package="$1"
+  shift
+  local arr=("$@")
+  
+  for item in "${arr[@]}"; do
+    if [[ "$item" == "$package" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Function to check if a package is a dependency of other packages
+is_dependency() {
+  local package="$1"
+  
+  # First check: Use uses command to see what depends on this package
+  if brew uses --installed "$package" | grep -q "."; then
+    return 0  # It is a dependency
+  fi
+  
+  # Second check: Try to uninstall with dry run to see if it would be refused
+  if brew uninstall --dry-run "$package" 2>&1 | grep -q "Refusing to uninstall"; then
+    return 0  # It is a dependency
+  fi
+  
+  # Third check: Check if it's a dependency of any desired package
+  for desired in "${DESIRED_BREWS[@]}"; do
+    if brew deps "$desired" 2>/dev/null | grep -q "^$package\$"; then
+      return 0  # It is a dependency of a desired package
+    fi
+  done
+  
+  return 1  # It is not a dependency
+}
+
+# Temporarily disable exit on error for the cleanup section
+set +e
+
+# Remove brews that are no longer in homebrew.yaml, are not system packages, and are not dependencies
+for brew in "${INSTALLED_BREWS[@]}"; do
+  if ! contains "$brew" "${DESIRED_BREWS[@]}" && ! contains "$brew" "${SYSTEM_PACKAGES[@]}"; then
+    if is_dependency "$brew"; then
+      echo "Skipping removal of $brew: it's a dependency of other packages"
+    else
+      echo "Removing brew: $brew (no longer in homebrew.yaml)"
+      brew uninstall "$brew" || {
+        echo "Warning: Failed to remove $brew, it might be a dependency. Skipping."
+      }
+    fi
+  fi
+done
+
+# Remove casks that are no longer in homebrew.yaml
+for cask in "${INSTALLED_CASKS[@]}"; do
+  if ! contains "$cask" "${DESIRED_CASKS[@]}"; then
+    echo "Removing cask: $cask (no longer in homebrew.yaml)"
+    brew uninstall --cask "$cask" || {
+      echo "Warning: Failed to remove cask $cask. Skipping."
+    }
+  fi
+done
+
+# Re-enable exit on error
+set -e
+
+echo "Homebrew packages installation and cleanup complete!"
+{{ end -}}

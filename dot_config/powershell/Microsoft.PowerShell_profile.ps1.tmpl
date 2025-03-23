@@ -1,0 +1,111 @@
+# =============================================================================
+# PowerShell Profile
+# 
+# Managed by chezmoi
+#
+# Purpose:
+#   Configures PowerShell environment, including modules, aliases, and functions
+#
+# Location:
+#   - Windows: $HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1
+#   - macOS/Linux: $HOME/.config/powershell/Microsoft.PowerShell_profile.ps1
+# =============================================================================
+
+# Script preferences
+$ErrorActionPreference = 'Continue'
+$ProgressPreference = 'SilentlyContinue' # Speeds up operations
+
+# Helper function for timestamps in prompt
+function Get-TimeStamp {
+    return "[$(Get-Date -Format 'HH:mm:ss')]"
+}
+
+# Import modules if installed
+$ModulesToImport = @(
+    "PSReadLine",
+    "posh-git",
+    "oh-my-posh",
+    "Terminal-Icons",
+    "PSFzf"
+)
+
+foreach ($module in $ModulesToImport) {
+    if (Get-Module -ListAvailable -Name $module) {
+        Import-Module $module -ErrorAction SilentlyContinue
+    }
+}
+
+# Configure PSReadLine for better command line editing
+if (Get-Module -Name PSReadLine) {
+    # Enable predictive IntelliSense
+    Set-PSReadLineOption -PredictionSource History
+    Set-PSReadLineOption -PredictionViewStyle ListView
+    
+    # Set command history search to work like bash/zsh
+    Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
+    Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+    
+    # Tab completion
+    Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
+}
+
+# Configure oh-my-posh theme if installed
+if (Get-Command -Name oh-my-posh -ErrorAction SilentlyContinue) {
+    oh-my-posh init pwsh --config "$(oh-my-posh get path)/themes/jandedobbeleer.omp.json" | Invoke-Expression
+}
+
+# Configure Terminal-Icons if installed
+if (Get-Module -ListAvailable -Name Terminal-Icons) {
+    Import-Module Terminal-Icons
+}
+
+# Configure PSFzf if installed
+if (Get-Module -ListAvailable -Name PSFzf) {
+    # Replace default keybindings with better ones
+    Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+f' -PSReadlineChordReverseHistory 'Ctrl+r'
+}
+
+# Configure posh-git if installed
+if (Get-Module -ListAvailable -Name posh-git) {
+    $GitPromptSettings.DefaultPromptAbbreviateHomeDirectory = $true
+}
+
+# Aliases
+Set-Alias -Name g -Value git
+Set-Alias -Name ll -Value Get-ChildItem
+Set-Alias -Name touch -Value New-Item
+
+# Custom functions
+function which ($command) {
+    Get-Command -Name $command -ErrorAction SilentlyContinue |
+        Select-Object -ExpandProperty Path -ErrorAction SilentlyContinue
+}
+
+# Directory navigation shortcuts
+function .. { Set-Location .. }
+function ... { Set-Location ..\.. }
+function .... { Set-Location ..\..\.. }
+
+# Git shortcuts
+function gs { git status }
+function ga { git add $args }
+function gc { git commit -m $args }
+function gp { git push }
+function gl { git pull }
+
+# Detect OS and set specific configurations
+if ($IsWindows) {
+    # Windows-specific settings
+    $env:PATH += ";$HOME\AppData\Local\Microsoft\WindowsApps"
+}
+elseif ($IsMacOS) {
+    # macOS-specific settings
+    $env:PATH += ":/opt/homebrew/bin:/usr/local/bin"
+}
+elseif ($IsLinux) {
+    # Linux-specific settings
+    $env:PATH += ":/usr/local/bin"
+}
+
+# Welcome message
+Write-Host "PowerShell $($PSVersionTable.PSVersion) - Profile loaded $(Get-TimeStamp)" -ForegroundColor Cyan
