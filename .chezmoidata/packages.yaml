@@ -10,6 +10,7 @@ packages:
       - "git" # Distributed version control system
       - "go" # Open source programming language
       - "grep" # GNU grep, egrep and fgrep
+      - "jq" # Lightweight and flexible command-line JSON processor
       - "mise" # Development tool version manager (formerly rtx)
       - "minijinja-cli" # Command-line interface for MiniJinja
       - "moreutils" # Collection of Unix tools

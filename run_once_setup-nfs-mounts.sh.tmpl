@@ -1,0 +1,196 @@
+#!/bin/bash
+
+# =============================================================================
+# NFS Mount Setup with 1Password Integration
+# 
+# Managed by chezmoi - Runs once per machine
+#
+# Purpose:
+#   Retrieves NFS mount information from 1Password and sets up mounts.
+#   Designed to automate NFS mount configuration on new machines.
+#
+# Requirements:
+#   - 1Password CLI (op) installed and authenticated
+#   - NFS mount information stored in 1Password with the following structure:
+#     - Item Type: Secure Note
+#     - Title: "NFS Mount - [Description]"
+#     - Fields:
+#       - server: NFS server address (e.g., "192.168.1.100")
+#       - remote_path: Path on the NFS server (e.g., "/exports/data")
+#       - local_path: Local mount point (e.g., "/Users/username/mounts/data")
+#       - options: Mount options (e.g., "resvport,rw,noatime")
+#       - add_to_fstab: Whether to add to /etc/fstab (true/false)
+#
+# "To add new NFS mounts:"
+# "1. Create a new item in 1Password with the tag 'nfs-mount'"
+# "2. Add the following fields:"
+# "   - server: NFS server address"
+# "   - remote_path: Path on the NFS server"
+# "   - local_path: Local mount point"
+# "   - options: Mount options (optional, defaults to 'resvport,rw,noatime')"
+# "   - add_to_fstab: Whether to add to /etc/fstab (true/false)"
+# "3. Run this script again or 'chezmoi apply'"
+# Usage:
+#   chezmoi apply   # Apply configuration (script runs automatically)
+#   ./run_once_setup-nfs-mounts.sh  # Direct execution (requires admin privileges)
+# =============================================================================
+
+# --- Functions --------------------------------------------------------------
+log() { echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"; }
+error() { log "ERROR: $1" >&2; }
+warn() { log "WARNING: $1" >&2; }
+info() { log "INFO: $1"; }
+success() { log "SUCCESS: $1"; }
+
+# Command execution with error handling
+execute() {
+  local cmd="$1"
+  local msg="$2"
+  local quiet="${3:-false}"
+  
+  if [ "$quiet" = "true" ]; then
+    eval "$cmd" >/dev/null 2>&1
+  else
+    eval "$cmd" 2>/dev/null
+  fi
+  
+  local result=$?
+  if [ $result -eq 0 ]; then
+    [ -n "$msg" ] && success "$msg"
+    return 0
+  else
+    [ -n "$msg" ] && warn "Failed: $msg"
+    return 1
+  fi
+}
+
+# --- Safety Checks ----------------------------------------------------------
+if [ "$(uname -s)" != "Darwin" ]; then
+  error "This script only runs on macOS systems."
+  exit 1
+fi
+
+# Check for 1Password CLI
+if ! command -v op >/dev/null 2>&1; then
+  error "1Password CLI (op) is not installed. Please install it first."
+  info "You can install it with: brew install --cask 1password-cli"
+  exit 1
+fi
+
+# Check for jq (required for JSON parsing)
+if ! command -v jq >/dev/null 2>&1; then
+  error "jq is not installed. Please install it first."
+  info "You can install it with: brew install jq"
+  exit 1
+fi
+
+# Check for 1Password authentication
+if ! op account list >/dev/null 2>&1; then
+  error "1Password CLI is not authenticated. Please sign in first."
+  info "You can sign in with: op signin"
+  exit 1
+fi
+
+# --- Confirmation -----------------------------------------------------------
+echo "This script will set up NFS mounts using information from 1Password."
+echo
+echo "It will:"
+echo "  1. Retrieve NFS mount information from 1Password"
+echo "  2. Create local mount points if they don't exist"
+echo "  3. Mount NFS shares"
+echo "  4. Optionally add entries to /etc/fstab for persistence"
+echo
+read -p "Do you want to continue? (y/n) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  info "Operation canceled."
+  exit 0
+fi
+
+# Request administrative privileges
+info "Requesting administrative privileges"
+sudo -v
+# Keep-alive: update existing `sudo` time stamp until script has finished
+while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+
+# --- Retrieve NFS Mount Information from 1Password --------------------------
+info "Retrieving NFS mount information from 1Password..."
+
+# Get all items with "NFS Mount" in the title
+nfs_items=$(op item list --tags "nfs-mount" --format json)
+
+if [ -z "$nfs_items" ]; then
+  error "No NFS mount items found in 1Password. Please create items with the tag 'nfs-mount'."
+  info "See script header for required item structure."
+  exit 1
+fi
+
+# Process each NFS mount item
+echo "$nfs_items" | jq -c '.[]' | while read -r item; do
+  item_id=$(echo "$item" | jq -r '.id')
+  item_title=$(echo "$item" | jq -r '.title')
+  
+  info "Processing mount: $item_title"
+  
+  # Get detailed item information
+  item_details=$(op item get "$item_id" --format json)
+  
+  # Extract fields
+  server=$(echo "$item_details" | jq -r '.fields[] | select(.label=="server") | .value')
+  remote_path=$(echo "$item_details" | jq -r '.fields[] | select(.label=="remote_path") | .value')
+  local_path=$(echo "$item_details" | jq -r '.fields[] | select(.label=="local_path") | .value')
+  options=$(echo "$item_details" | jq -r '.fields[] | select(.label=="options") | .value')
+  add_to_fstab=$(echo "$item_details" | jq -r '.fields[] | select(.label=="add_to_fstab") | .value')
+  
+  # Validate required fields
+  if [ -z "$server" ] || [ -z "$remote_path" ] || [ -z "$local_path" ]; then
+    error "Missing required fields for $item_title. Skipping."
+    continue
+  fi
+  
+  # Set default options if not specified
+  if [ -z "$options" ]; then
+    options="resvport,rw,noatime"
+  fi
+  
+  # Create local mount point if it doesn't exist
+  if [ ! -d "$local_path" ]; then
+    info "Creating mount point: $local_path"
+    execute "sudo mkdir -p \"$local_path\"" "Created mount point: $local_path"
+    execute "sudo chown $(whoami):staff \"$local_path\"" "Set ownership for $local_path"
+  fi
+  
+  # Check if already mounted
+  if mount | grep -q " on $local_path "; then
+    info "$local_path is already mounted. Skipping mount operation."
+  else
+    # Mount the NFS share
+    mount_cmd="sudo mount -t nfs -o $options $server:$remote_path \"$local_path\""
+    execute "$mount_cmd" "Mounted $server:$remote_path to $local_path"
+  fi
+  
+  # Add to /etc/fstab if requested
+  if [ "$add_to_fstab" = "true" ]; then
+    # Check if entry already exists in fstab
+    if grep -q "$server:$remote_path" /etc/fstab; then
+      info "Entry for $server:$remote_path already exists in /etc/fstab. Skipping."
+    else
+      info "Adding entry to /etc/fstab for persistence"
+      fstab_entry="$server:$remote_path $local_path nfs $options 0 0"
+      execute "echo \"$fstab_entry\" | sudo tee -a /etc/fstab > /dev/null" "Added entry to /etc/fstab"
+    fi
+  fi
+done
+
+# --- Final Message ----------------------------------------------------------
+echo
+echo "✅ NFS mount setup complete!"
+echo
+echo "To add new NFS mounts:"
+echo "1. Create a new item in 1Password with the tag 'nfs-mount'"
+echo "2. Add the required fields (server, remote_path, local_path)"
+echo "3. Run 'chezmoi apply' to apply the changes"
+echo
+echo "To view current mounts: mount | grep nfs"
+echo "To manually unmount: sudo umount /path/to/mount"
+echo
