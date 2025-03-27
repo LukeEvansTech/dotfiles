@@ -1,4 +1,7 @@
 README.md
+README.nfs-mounts.md
+README.homebrew.md
+README.powershell.md
 LICENSE
 *.swp
 .git/
