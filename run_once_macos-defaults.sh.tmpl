@@ -362,6 +362,10 @@ execute "defaults write com.apple.dock no-bouncing -bool true" \
 execute "defaults write com.apple.dock minimize-to-application -bool true" \
   "Set windows to minimize into app icon"
 
+# Only show open applications in the Dock
+execute "defaults write com.apple.dock static-only -bool true" \
+  "Set Dock to only show open applications"
+
 info "Dock configured with fixed 64px icons and no animations. Restart will apply changes."
 
 
