@@ -2,7 +2,7 @@ powershell:
   modules:
     # Core modules
     - "posh-git"          # Git integration for PowerShell
-    - "oh-my-posh"        # Prompt theme engine
+    # - "oh-my-posh"        # Prompt theme engine - https://ohmyposh.dev/docs/migrating
     - "Terminal-Icons"    # File and folder icons
     
     # Utility modules
