@@ -122,6 +122,13 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 # --- Security & Privacy ------------------------------------------------------
 info "Configuring security & privacy settings..."
 
+# Enable Touch ID for sudo
+info "Enabling Touch ID for sudo..."
+execute "sudo cp /etc/pam.d/sudo /etc/pam.d/sudo.backup" \
+  "Backed up existing sudo configuration"
+execute "sudo sed -i '' '1s/^/auth       sufficient     pam_tid.so\'$'\n/g' /etc/pam.d/sudo" \
+  "Enabled Touch ID for sudo"
+
 # Enable firewall and stealth mode
 execute "sudo defaults write /Library/Preferences/com.apple.alf globalstate -int 2" \
   "Enabled firewall"
