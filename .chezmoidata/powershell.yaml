@@ -14,3 +14,7 @@ powershell:
     - "PnP.PowerShell"
     - "Microsoft.PowerShell.SecretManagement" # Secret management
     - "Microsoft.PowerShell.SecretStore"      # Secret store backend
+  
+  scripts:
+    # PowerShell scripts to install
+    - "IntuneBrew"        # Example script for Intune management

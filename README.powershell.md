@@ -1,11 +1,11 @@
-# PowerShell Module Management
+# PowerShell Module and Script Management
 
-This document explains how PowerShell modules are managed with chezmoi.
+This document explains how PowerShell modules and scripts are managed with chezmoi.
 
 ## Quick Start
 
-1. **Add modules to configuration**:
-   - Edit `.chezmoidata/powershell.yaml` to add or remove modules
+1. **Add modules or scripts to configuration**:
+   - Edit `.chezmoidata/powershell.yaml` to add or remove modules and scripts
 
 2. **Apply configuration**:
    ```bash
@@ -14,7 +14,7 @@ This document explains how PowerShell modules are managed with chezmoi.
 
 ## Configuration Structure
 
-The PowerShell module configuration is stored in `.chezmoidata/powershell.yaml`:
+The PowerShell configuration is stored in `.chezmoidata/powershell.yaml`:
 
 ```yaml
 powershell:
@@ -23,6 +23,9 @@ powershell:
     - "posh-git"          # Git integration for PowerShell
     - "oh-my-posh"        # Prompt theme engine
     - "Terminal-Icons"    # File and folder icons
+  
+  scripts:
+    - "IntuneBrew"        # Intune management script
 ```
 
 ### Common Modules
@@ -34,16 +37,22 @@ powershell:
 | `Terminal-Icons`   | File and folder icons in terminal listings  |
 | `PSScriptAnalyzer` | Static code analyzer for PowerShell scripts |
 
+### Common Scripts
+
+| Script       | Description                               |
+| ------------ | ----------------------------------------- |
+| `IntuneBrew` | Script for managing Intune configurations |
+
 ## How It Works
 
-The script `run_onchange_install-powershell-modules.sh.tmpl`:
+The script `run_onchange_install-powershell-components.sh.tmpl`:
 
 1. Checks if PowerShell is installed (installs it if needed)
 2. Creates a temporary PowerShell script
 3. Executes the script with `pwsh -File`
 4. The PowerShell script:
    - Configures PSGallery as a trusted repository
-   - Installs or updates each module in the configuration
+   - Installs or updates each module and script in the configuration
    - Handles platform-specific differences (Windows/macOS/Linux)
 
 ## Prerequisites
@@ -56,7 +65,15 @@ The script `run_onchange_install-powershell-modules.sh.tmpl`:
 To add a new PowerShell module:
 
 1. Find the module name using `Find-Module -Name "*keyword*"` in PowerShell
-2. Add the module name to `.chezmoidata/powershell.yaml`
+2. Add the module name to `.chezmoidata/powershell.yaml` under the `modules` section
+3. Run `chezmoi apply` to install
+
+## Adding New Scripts
+
+To add a new PowerShell script:
+
+1. Find the script name using `Find-Script -Name "*keyword*"` in PowerShell
+2. Add the script name to `.chezmoidata/powershell.yaml` under the `scripts` section
 3. Run `chezmoi apply` to install
 
 ## Removing Modules
@@ -70,6 +87,19 @@ To completely uninstall a module:
 
 ```powershell
 Uninstall-Module -Name ModuleName -AllVersions
+```
+
+## Removing Scripts
+
+To remove a script from automatic management:
+
+1. Delete the script from `.chezmoidata/powershell.yaml`
+2. The script will remain installed but won't be updated automatically
+
+To completely uninstall a script:
+
+```powershell
+Uninstall-Script -Name ScriptName
 ```
 
 ## PowerShell Profile

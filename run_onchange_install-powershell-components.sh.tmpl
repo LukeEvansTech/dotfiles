@@ -2,12 +2,12 @@
 # hash: {{ include ".chezmoidata/powershell.yaml" | sha256sum }}
 
 # =============================================================================
-# PowerShell Module Management
+# PowerShell Module and Script Management
 # 
 # Managed by chezmoi - Runs when the template or data changes
 #
 # Purpose:
-#   Installs and updates PowerShell modules defined in .chezmoidata/powershell.yaml
+#   Installs and updates PowerShell modules and scripts defined in .chezmoidata/powershell.yaml
 #
 # Requirements:
 #   - PowerShell 7+ (pwsh)
@@ -35,17 +35,17 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Path to the PowerShell script
-PS_SCRIPT="${SCRIPT_DIR}/install-powershell-modules.ps1"
+PS_SCRIPT="${SCRIPT_DIR}/install-powershell-components.ps1"
 
 # Create the PowerShell script from the template
 cat > "$PS_SCRIPT" << 'PWSH_SCRIPT'
 # =============================================================================
-# PowerShell Module Management
+# PowerShell Module and Script Management
 # 
 # Managed by chezmoi - Runs when the template or data changes
 #
 # Purpose:
-#   Installs and updates PowerShell modules defined in .chezmoidata/powershell.yaml
+#   Installs and updates PowerShell modules and scripts defined in .chezmoidata/powershell.yaml
 #
 # Requirements:
 #   - PowerShell 7+ (pwsh)
@@ -116,6 +116,40 @@ function Install-RequiredModule {
     }
 }
 
+function Install-RequiredScript {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+        
+        [Parameter(Mandatory = $false)]
+        [switch]$Update
+    )
+    
+    try {
+        # Check if script is already installed
+        $scriptInfo = Get-InstalledScript -Name $Name -ErrorAction SilentlyContinue
+        
+        if ($scriptInfo) {
+            if ($Update) {
+                Write-Status "Updating script: $Name" -Type Info
+                Update-Script -Name $Name -Force -ErrorAction Stop
+                Write-Status "Script updated: $Name" -Type Success
+            }
+            else {
+                Write-Status "Script already installed: $Name" -Type Info
+            }
+        }
+        else {
+            Write-Status "Installing script: $Name" -Type Info
+            Install-Script -Name $Name -Force -Scope CurrentUser -ErrorAction Stop
+            Write-Status "Script installed: $Name" -Type Success
+        }
+    }
+    catch {
+        Write-Status "Failed to install/update script $Name`: $_" -Type Error
+    }
+}
+
 # Check if running as administrator (platform-specific)
 $isAdmin = $false
 if ($IsWindows) {
@@ -172,14 +206,25 @@ foreach ($module in $modules) {
     Install-RequiredModule -Name $module -Update
 }
 
-Write-Status "PowerShell module management complete!" -Type Success
+# Install/update scripts from the YAML configuration
+Write-Status "Processing PowerShell scripts..." -Type Info
+
+$scripts = @(
+{{ range .powershell.scripts }}    "{{ . }}"
+{{ end }})
+
+foreach ($script in $scripts) {
+    Install-RequiredScript -Name $script -Update
+}
+
+Write-Status "PowerShell component management complete!" -Type Success
 PWSH_SCRIPT
 
 # Make the PowerShell script executable
 chmod +x "$PS_SCRIPT"
 
 # Execute the PowerShell script
-info "Executing PowerShell module installation script..."
+info "Executing PowerShell component installation script..."
 pwsh -File "$PS_SCRIPT"
 result=$?
 
@@ -187,8 +232,8 @@ result=$?
 rm -f "$PS_SCRIPT"
 
 if [ $result -eq 0 ]; then
-  success "PowerShell module installation completed successfully."
+  success "PowerShell component installation completed successfully."
 else
-  error "PowerShell module installation failed."
+  error "PowerShell component installation failed."
   exit 1
 fi
