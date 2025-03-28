@@ -4,6 +4,7 @@ README.homebrew.md
 README.powershell.md
 README.powershell-scripts.md
 LICENSE
+setup.sh
 *.swp
 .git/
 .DS_Store
