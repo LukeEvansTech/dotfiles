@@ -15,6 +15,7 @@ packages:
       - "minijinja-cli" # Command-line interface for MiniJinja
       - "moreutils" # Collection of Unix tools
       - "nmap" # Port scanning utility for large networks
+      - "oh-my-posh" 
       - "openssh" # OpenBSD freely-licensed SSH connectivity tools
       - "pipx" # Install and run Python applications in isolated environments
       - "pwgen" # Password generator
