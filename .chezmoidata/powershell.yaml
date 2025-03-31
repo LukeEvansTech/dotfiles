@@ -9,6 +9,7 @@ powershell:
     - "PSScriptAnalyzer"  # Static code analyzer
     - "ImportExcel"       # Excel manipulation
     - "PSFzf"             # Fuzzy finder integration
+    - "VMware.PowerCLI"   # VMware PowerCLI
     
     # Microsoft modules
     - "PnP.PowerShell"
