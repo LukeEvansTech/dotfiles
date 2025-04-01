@@ -13,6 +13,7 @@ powershell:
     
     # Microsoft modules
     - "PnP.PowerShell"
+    - "Microsoft.Graph"   # Microsoft Graph API
     - "Microsoft.PowerShell.SecretManagement" # Secret management
     - "Microsoft.PowerShell.SecretStore"      # Secret store backend
   
