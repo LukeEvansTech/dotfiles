@@ -51,7 +51,13 @@ if (Get-Module -Name PSReadLine) {
 
 # Configure oh-my-posh theme if installed
 if (Get-Command -Name oh-my-posh -ErrorAction SilentlyContinue) {
-    oh-my-posh init pwsh --config "$(oh-my-posh get path)/themes/jandedobbeleer.omp.json" | Invoke-Expression
+    # Use the built-in jandedobbeleer theme directly
+    oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/jandedobbeleer.omp.json" | Invoke-Expression
+    
+    # If the above fails, fall back to using the theme by name
+    if (-not $?) {
+        oh-my-posh init pwsh --config "jandedobbeleer" | Invoke-Expression
+    }
 }
 
 # Configure Terminal-Icons if installed
