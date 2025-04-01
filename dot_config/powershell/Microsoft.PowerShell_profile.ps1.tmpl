@@ -51,12 +51,12 @@ if (Get-Module -Name PSReadLine) {
 
 # Configure oh-my-posh theme if installed
 if (Get-Command -Name oh-my-posh -ErrorAction SilentlyContinue) {
-    # Use the built-in jandedobbeleer theme directly
-    oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/jandedobbeleer.omp.json" | Invoke-Expression
+    # Use the built-in dracula theme directly
+    oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/dracula.omp.json" | Invoke-Expression
     
     # If the above fails, fall back to using the theme by name
     if (-not $?) {
-        oh-my-posh init pwsh --config "jandedobbeleer" | Invoke-Expression
+        oh-my-posh init pwsh --config "dracula" | Invoke-Expression
     }
 }
 
