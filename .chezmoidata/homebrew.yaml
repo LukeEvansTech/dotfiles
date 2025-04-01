@@ -13,6 +13,7 @@ packages:
       - "jq" # Lightweight and flexible command-line JSON processor
       - "mise" # Development tool version manager (formerly rtx)
       - "minijinja-cli" # Command-line interface for MiniJinja
+      - "mono-libgdiplus" # Mono's GDI+ compatibility layer - ImportExcel Module Cannot Autosize. Please run the following command to install dependencies: brew install mono-libgdiplus
       - "moreutils" # Collection of Unix tools
       - "nmap" # Port scanning utility for large networks
       - "oh-my-posh" 
