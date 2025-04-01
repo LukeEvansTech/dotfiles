@@ -91,28 +91,100 @@ function Install-RequiredModule {
         [string]$Name,
         
         [Parameter(Mandatory = $false)]
-        [switch]$Update
+        [string]$Version,
+        
+        [Parameter(Mandatory = $false)]
+        [switch]$Update,
+        
+        [Parameter(Mandatory = $false)]
+        [switch]$KeepPreviousVersions
     )
     
     try {
+        # Parse module name and version if provided in format "Name@Version"
+        if ($Name -match '^(.+)@(.+)$') {
+            $Name = $Matches[1]
+            $Version = $Matches[2]
+            # If version is specified, we want to keep it pinned
+            $KeepPreviousVersions = $false
+        }
+        
         if (Test-ModuleInstalled -Name $Name) {
-            if ($Update) {
-                Write-Status "Updating module: $Name" -Type Info
-                Update-Module -Name $Name -Force -ErrorAction Stop
-                Write-Status "Module updated: $Name" -Type Success
+            $installedVersions = Get-Module -Name $Name -ListAvailable | Sort-Object Version -Descending
+            $latestInstalled = $installedVersions | Select-Object -First 1
+            
+            # Handle version pinning
+            if ($Version) {
+                # Check if the specified version is already installed
+                $pinnedVersionInstalled = $installedVersions | Where-Object { $_.Version -eq $Version }
+                
+                if (-not $pinnedVersionInstalled) {
+                    Write-Status "Installing pinned version $Version of module: $Name" -Type Info
+                    Install-Module -Name $Name -RequiredVersion $Version -Scope CurrentUser -Force -AllowClobber -ErrorAction Stop
+                    Write-Status "Pinned version $Version of module $Name installed" -Type Success
+                } else {
+                    Write-Status "Pinned version $Version of module $Name is already installed" -Type Info
+                }
+            }
+            # Handle update with cleanup
+            elseif ($Update) {
+                # Check if there's a newer version available
+                $currentVersion = $latestInstalled.Version
+                try {
+                    $onlineModule = Find-Module -Name $Name -ErrorAction Stop
+                    $onlineVersion = $onlineModule.Version
+                    
+                    if ([Version]$onlineVersion -gt [Version]$currentVersion) {
+                        Write-Status "Newer version available for module $Name ($currentVersion -> $onlineVersion)" -Type Info
+                        Write-Status "Updating module: $Name" -Type Info
+                        Update-Module -Name $Name -Force -ErrorAction Stop
+                        
+                        # Clean up old versions if not keeping previous versions
+                        if (-not $KeepPreviousVersions) {
+                            $newVersions = Get-Module -Name $Name -ListAvailable | Sort-Object Version -Descending
+                            $latestVersion = $newVersions | Select-Object -First 1
+                            $oldVersions = $newVersions | Where-Object { $_.Version -ne $latestVersion.Version }
+                            
+                            if ($oldVersions) {
+                                Write-Status "Removing previous versions of module: $Name" -Type Info
+                                foreach ($oldVersion in $oldVersions) {
+                                    try {
+                                        # Uninstall old version
+                                        Uninstall-Module -Name $Name -RequiredVersion $oldVersion.Version -Force -ErrorAction Stop
+                                        Write-Status "Removed version $($oldVersion.Version) of module $Name" -Type Success
+                                    } catch {
+                                        Write-Status ("Failed to remove version " + $oldVersion.Version + " of module $Name - " + $_) -Type Warning
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Write-Status "Module updated: $Name" -Type Success
+                    } else {
+                        Write-Status "Module $Name is already at the latest version ($currentVersion)" -Type Info
+                    }
+                } catch {
+                    Write-Status ("Failed to check for updates for module $Name - " + $_) -Type Warning
+                }
             }
             else {
                 Write-Status "Module already installed: $Name" -Type Info
             }
         }
         else {
-            Write-Status "Installing module: $Name" -Type Info
-            Install-Module -Name $Name -Scope CurrentUser -Force -AllowClobber -ErrorAction Stop
-            Write-Status "Module installed: $Name" -Type Success
+            if ($Version) {
+                Write-Status "Installing pinned version $Version of module: $Name" -Type Info
+                Install-Module -Name $Name -RequiredVersion $Version -Scope CurrentUser -Force -AllowClobber -ErrorAction Stop
+                Write-Status "Pinned version $Version of module $Name installed" -Type Success
+            } else {
+                Write-Status "Installing latest version of module: $Name" -Type Info
+                Install-Module -Name $Name -Scope CurrentUser -Force -AllowClobber -ErrorAction Stop
+                Write-Status "Module installed: $Name" -Type Success
+            }
         }
     }
     catch {
-        Write-Status "Failed to install/update module $Name`: $_" -Type Error
+        Write-Status ("Failed to install/update module " + $Name + " - " + $_) -Type Error
     }
 }
 
@@ -122,31 +194,103 @@ function Install-RequiredScript {
         [string]$Name,
         
         [Parameter(Mandatory = $false)]
-        [switch]$Update
+        [string]$Version,
+        
+        [Parameter(Mandatory = $false)]
+        [switch]$Update,
+        
+        [Parameter(Mandatory = $false)]
+        [switch]$KeepPreviousVersions
     )
     
     try {
+        # Parse script name and version if provided in format "Name@Version"
+        if ($Name -match '^(.+)@(.+)$') {
+            $Name = $Matches[1]
+            $Version = $Matches[2]
+            # If version is specified, we want to keep it pinned
+            $KeepPreviousVersions = $false
+        }
+        
         # Check if script is already installed
         $scriptInfo = Get-InstalledScript -Name $Name -ErrorAction SilentlyContinue
         
         if ($scriptInfo) {
-            if ($Update) {
-                Write-Status "Updating script: $Name" -Type Info
-                Update-Script -Name $Name -Force -ErrorAction Stop
-                Write-Status "Script updated: $Name" -Type Success
+            $installedVersions = Get-InstalledScript -Name $Name | Sort-Object Version -Descending
+            $latestInstalled = $installedVersions | Select-Object -First 1
+            
+            # Handle version pinning
+            if ($Version) {
+                # Check if the specified version is already installed
+                $pinnedVersionInstalled = $installedVersions | Where-Object { $_.Version -eq $Version }
+                
+                if (-not $pinnedVersionInstalled) {
+                    Write-Status "Installing pinned version $Version of script: $Name" -Type Info
+                    Install-Script -Name $Name -RequiredVersion $Version -Force -Scope CurrentUser -ErrorAction Stop
+                    Write-Status "Pinned version $Version of script $Name installed" -Type Success
+                } else {
+                    Write-Status "Pinned version $Version of script $Name is already installed" -Type Info
+                }
+            }
+            # Handle update with cleanup
+            elseif ($Update) {
+                # Check if there's a newer version available
+                $currentVersion = $latestInstalled.Version
+                try {
+                    $onlineScript = Find-Script -Name $Name -ErrorAction Stop
+                    $onlineVersion = $onlineScript.Version
+                    
+                    if ([Version]$onlineVersion -gt [Version]$currentVersion) {
+                        Write-Status "Newer version available for script $Name ($currentVersion -> $onlineVersion)" -Type Info
+                        Write-Status "Updating script: $Name" -Type Info
+                        Update-Script -Name $Name -Force -ErrorAction Stop
+                        
+                        # Clean up old versions if not keeping previous versions
+                        if (-not $KeepPreviousVersions) {
+                            $newVersions = Get-InstalledScript -Name $Name | Sort-Object Version -Descending
+                            $latestVersion = $newVersions | Select-Object -First 1
+                            $oldVersions = $newVersions | Where-Object { $_.Version -ne $latestVersion.Version }
+                            
+                            if ($oldVersions) {
+                                Write-Status "Removing previous versions of script: $Name" -Type Info
+                                foreach ($oldVersion in $oldVersions) {
+                                    try {
+                                        # Uninstall old version
+                                        Uninstall-Script -Name $Name -RequiredVersion $oldVersion.Version -Force -ErrorAction Stop
+                                        Write-Status "Removed version $($oldVersion.Version) of script $Name" -Type Success
+                                    } catch {
+                                        Write-Status ("Failed to remove version " + $oldVersion.Version + " of script $Name - " + $_) -Type Warning
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Write-Status "Script updated: $Name" -Type Success
+                    } else {
+                        Write-Status "Script $Name is already at the latest version ($currentVersion)" -Type Info
+                    }
+                } catch {
+                    Write-Status ("Failed to check for updates for script $Name - " + $_) -Type Warning
+                }
             }
             else {
                 Write-Status "Script already installed: $Name" -Type Info
             }
         }
         else {
-            Write-Status "Installing script: $Name" -Type Info
-            Install-Script -Name $Name -Force -Scope CurrentUser -ErrorAction Stop
-            Write-Status "Script installed: $Name" -Type Success
+            if ($Version) {
+                Write-Status "Installing pinned version $Version of script: $Name" -Type Info
+                Install-Script -Name $Name -RequiredVersion $Version -Force -Scope CurrentUser -ErrorAction Stop
+                Write-Status "Pinned version $Version of script $Name installed" -Type Success
+            } else {
+                Write-Status "Installing latest version of script: $Name" -Type Info
+                Install-Script -Name $Name -Force -Scope CurrentUser -ErrorAction Stop
+                Write-Status "Script installed: $Name" -Type Success
+            }
         }
     }
     catch {
-        Write-Status "Failed to install/update script $Name`: $_" -Type Error
+        Write-Status ("Failed to install/update script " + $Name + " - " + $_) -Type Error
     }
 }
 
@@ -160,7 +304,7 @@ if ($IsWindows) {
         }
     }
     catch {
-        Write-Status "Could not determine administrator status: $_" -Type Warning
+        Write-Status ("Could not determine administrator status - " + $_) -Type Warning
     }
 }
 elseif ($IsMacOS) {
@@ -198,12 +342,23 @@ if ((Get-PSRepository -Name PSGallery).InstallationPolicy -ne 'Trusted') {
 # Install/update modules from the YAML configuration
 Write-Status "Processing PowerShell modules..." -Type Info
 
+# Define a flag to control whether to keep previous versions (default is false)
+$keepPreviousVersions = $false
+
 $modules = @(
 {{ range .powershell.modules }}    "{{ . }}"
 {{ end }})
 
 foreach ($module in $modules) {
-    Install-RequiredModule -Name $module -Update
+    # Check if this is a module with a pinned version (Name@Version format)
+    if ($module -match '^(.+)@(.+)$') {
+        $moduleName = $Matches[1]
+        $moduleVersion = $Matches[2]
+        Install-RequiredModule -Name $moduleName -Version $moduleVersion -Update
+    } else {
+        # For regular modules, install/update and clean up old versions
+        Install-RequiredModule -Name $module -Update -KeepPreviousVersions:$keepPreviousVersions
+    }
 }
 
 # Install/update scripts from the YAML configuration
@@ -214,7 +369,15 @@ $scripts = @(
 {{ end }})
 
 foreach ($script in $scripts) {
-    Install-RequiredScript -Name $script -Update
+    # Check if this is a script with a pinned version (Name@Version format)
+    if ($script -match '^(.+)@(.+)$') {
+        $scriptName = $Matches[1]
+        $scriptVersion = $Matches[2]
+        Install-RequiredScript -Name $scriptName -Version $scriptVersion -Update
+    } else {
+        # For regular scripts, install/update and clean up old versions
+        Install-RequiredScript -Name $script -Update -KeepPreviousVersions:$keepPreviousVersions
+    }
 }
 
 Write-Status "PowerShell component management complete!" -Type Success

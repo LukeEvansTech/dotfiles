@@ -23,10 +23,24 @@ powershell:
     - "posh-git"          # Git integration for PowerShell
     - "oh-my-posh"        # Prompt theme engine
     - "Terminal-Icons"    # File and folder icons
+    - "ImportExcel@7.8.5" # Excel manipulation with pinned version
   
   scripts:
     - "IntuneBrew"        # Intune management script
+    - "PSWindowsUpdate@2.2.0" # Windows Update script with pinned version
 ```
+
+### Version Pinning
+
+You can pin a specific version of a module or script by using the `Name@Version` format:
+
+```yaml
+- "Microsoft.Graph@2.5.0"  # Pins Microsoft Graph module to version 2.5.0
+```
+
+When a version is pinned:
+1. Only that specific version will be installed
+2. The module/script won't be updated to newer versions automatically
 
 ### Common Modules
 
@@ -53,6 +67,8 @@ The script `run_onchange_install-powershell-components.sh.tmpl`:
 4. The PowerShell script:
    - Configures PSGallery as a trusted repository
    - Installs or updates each module and script in the configuration
+   - Automatically removes previous versions of modules and scripts when updating
+   - Respects version pinning for modules and scripts
    - Handles platform-specific differences (Windows/macOS/Linux)
 
 ## Prerequisites
@@ -112,6 +128,20 @@ This profile is loaded every time you start PowerShell and can contain:
 - Custom functions
 - Aliases
 - Prompt customization
+
+## Version Management
+
+By default, the system now:
+
+1. **Checks for newer versions** before updating modules and scripts
+2. **Only updates when a newer version is available** in the PowerShell Gallery
+3. **Automatically removes previous versions** after updating to save disk space
+4. **Respects pinned versions** when specified in the format `Name@Version`
+
+This behavior ensures that:
+- Your system stays clean without accumulating multiple versions of the same module
+- You always have the latest features and security updates
+- You can still pin specific versions when needed for compatibility
 
 ## Troubleshooting
 
