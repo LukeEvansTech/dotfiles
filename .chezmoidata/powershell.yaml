@@ -12,6 +12,7 @@ powershell:
     - "VMware.PowerCLI"   # VMware PowerCLI
     
     # Microsoft modules
+    - "MSIdentityTools"  # Microsoft Identity tools
     - "PnP.PowerShell"
     - "Microsoft.Graph"   # Microsoft Graph API
     - "Microsoft.PowerShell.SecretManagement" # Secret management
