@@ -5,3 +5,6 @@ name = Luke Evans
 email = contactluke@gmail.com
 [core]
 	editor = code --wait
+
+[pull]
+	rebase = true
