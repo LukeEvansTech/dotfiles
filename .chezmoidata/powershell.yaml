@@ -12,6 +12,7 @@ powershell:
     - "VMware.PowerCLI"   # VMware PowerCLI
     
     # Microsoft modules
+    - "ExchangeOnlineManagement" # Exchange Online management
     - "MSIdentityTools"  # Microsoft Identity tools
     - "PnP.PowerShell"
     - "Microsoft.Graph"   # Microsoft Graph API
