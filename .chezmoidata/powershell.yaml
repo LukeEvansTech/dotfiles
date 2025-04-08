@@ -4,22 +4,22 @@ powershell:
     - "posh-git"          # Git integration for PowerShell
     # - "oh-my-posh"        # Prompt theme engine - https://ohmyposh.dev/docs/migrating
     - "Terminal-Icons"    # File and folder icons
-    
+
     # Utility modules
-    - "PSScriptAnalyzer"  # Static code analyzer
     - "ImportExcel"       # Excel manipulation
     - "PSFzf"             # Fuzzy finder integration
+    - "PSScriptAnalyzer"  # Static code analyzer
+    - "PSModuleDevelopment" # Module development tools
     - "VMware.PowerCLI"   # VMware PowerCLI
-    - 
-    
+
     # Microsoft modules
     - "ExchangeOnlineManagement" # Exchange Online management
-    - "MSIdentityTools"  # Microsoft Identity tools
-    - "PnP.PowerShell"
     - "Microsoft.Graph"   # Microsoft Graph API
     - "Microsoft.PowerShell.SecretManagement" # Secret management
     - "Microsoft.PowerShell.SecretStore"      # Secret store backend
-  
+    - "MSIdentityTools"  # Microsoft Identity tools
+    - "PnP.PowerShell"    # PnP PowerShell for SharePoint/Teams/etc.
+
   scripts:
     # PowerShell scripts to install
     - "IntuneBrew"        # Example script for Intune management
