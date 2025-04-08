@@ -18,6 +18,7 @@ packages:
       - "nmap" # Port scanning utility for large networks
       - "oh-my-posh" 
       - "openssh" # OpenBSD freely-licensed SSH connectivity tools
+      - "pandoc" # Universal markup converter
       - "pipx" # Install and run Python applications in isolated environments
       - "pwgen" # Password generator
       - "python" # Interpreted, interactive, object-oriented programming language

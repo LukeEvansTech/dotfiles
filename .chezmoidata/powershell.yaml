@@ -10,6 +10,7 @@ powershell:
     - "ImportExcel"       # Excel manipulation
     - "PSFzf"             # Fuzzy finder integration
     - "VMware.PowerCLI"   # VMware PowerCLI
+    - 
     
     # Microsoft modules
     - "ExchangeOnlineManagement" # Exchange Online management
