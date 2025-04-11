@@ -1,2 +1,4 @@
 export EDITOR="code --wait"
 export VISUAL="code --wait"
+
+alias gam="/Users/luke.evans/bin/gam7/gam"
