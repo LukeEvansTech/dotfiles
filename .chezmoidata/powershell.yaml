@@ -9,6 +9,7 @@ powershell:
     - "Catesta"           # PowerShell module and vault project generator.
     - "ImportExcel"       # Excel manipulation
     - "Pester"            # Testing framework
+    - "platyPS"           # Write PowerShell External Help in Markdown
     - "PSFzf"             # Fuzzy finder integration
     - "PSScriptAnalyzer"  # Static code analyzer
     - "PSModuleDevelopment" # Module development tools
