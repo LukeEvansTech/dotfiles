@@ -107,10 +107,14 @@ if ($IsWindows) {
 elseif ($IsMacOS) {
     # macOS-specific settings
     $env:PATH += ":/opt/homebrew/bin:/usr/local/bin"
+    # GAM
+-   $env:PATH += ":/Users/luke.evans/bin/gam7/gam"    # macOS/Linux
 }
 elseif ($IsLinux) {
     # Linux-specific settings
     $env:PATH += ":/usr/local/bin"
+    # GAM
+-   $env:PATH += ":/Users/luke.evans/bin/gam7/gam"    # macOS/Linux
 }
 
 # Welcome message
