@@ -6,6 +6,7 @@ powershell:
     - "Terminal-Icons"    # File and folder icons
 
     # Utility modules
+    - "Catesta"           # PowerShell module and vault project generator.
     - "ImportExcel"       # Excel manipulation
     - "Pester"            # Testing framework
     - "PSFzf"             # Fuzzy finder integration
