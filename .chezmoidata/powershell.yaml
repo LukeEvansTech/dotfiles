@@ -2,26 +2,27 @@ powershell:
   modules:
     # Core modules
     - "posh-git"          # Git integration for PowerShell
-    # - "oh-my-posh"        # Prompt theme engine - https://ohmyposh.dev/docs/migrating
+    # - "oh-my-posh"      # Prompt theme engine - https://ohmyposh.dev/docs/migrating
     - "Terminal-Icons"    # File and folder icons
 
     # Utility modules
-    - "Catesta"           # PowerShell module and vault project generator.
-    - "ImportExcel"       # Excel manipulation
-    - "Pester"            # Testing framework
-    - "platyPS@0.12.0"    # Write PowerShell External Help in Markdown - https://github.com/techthoughts2/Catesta/issues/48
-    - "PSFzf"             # Fuzzy finder integration
-    - "PSScriptAnalyzer"  # Static code analyzer
+    - "Catesta"             # PowerShell module and vault project generator.
+    - "ImportExcel"         # Excel manipulation
+    - "Invoke-Build"        # Build automation
+    - "Pester"              # Testing framework
+    - "platyPS@0.12.0"      # Write PowerShell External Help in Markdown - https://github.com/techthoughts2/Catesta/issues/48
+    - "PSFzf"               # Fuzzy finder integration
+    - "PSScriptAnalyzer"    # Static code analyzer
     - "PSModuleDevelopment" # Module development tools
-    - "VMware.PowerCLI"   # VMware PowerCLI
+    - "VMware.PowerCLI"     # VMware PowerCLI
 
     # Microsoft modules
-    - "ExchangeOnlineManagement" # Exchange Online management
-    - "Microsoft.Graph"   # Microsoft Graph API
+    - "ExchangeOnlineManagement"              # Exchange Online management
+    - "Microsoft.Graph"                       # Microsoft Graph API
     - "Microsoft.PowerShell.SecretManagement" # Secret management
     - "Microsoft.PowerShell.SecretStore"      # Secret store backend
-    - "MSIdentityTools"  # Microsoft Identity tools
-    - "PnP.PowerShell"    # PnP PowerShell for SharePoint/Teams/etc.
+    - "MSIdentityTools"                       # Microsoft Identity tools
+    - "PnP.PowerShell"                        # PnP PowerShell for SharePoint/Teams/etc.
 
   scripts:
     # PowerShell scripts to install
