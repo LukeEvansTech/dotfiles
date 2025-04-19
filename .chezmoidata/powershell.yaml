@@ -8,7 +8,7 @@ powershell:
     # Utility modules
     - "Catesta"             # PowerShell module and vault project generator.
     - "ImportExcel"         # Excel manipulation
-    - "Invoke-Build"        # Build automation
+    - "InvokeBuild"        # Build automation
     - "Pester"              # Testing framework
     - "platyPS@0.12.0"      # Write PowerShell External Help in Markdown - https://github.com/techthoughts2/Catesta/issues/48
     - "PSFzf"               # Fuzzy finder integration
