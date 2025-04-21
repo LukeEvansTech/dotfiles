@@ -38,5 +38,6 @@ packages:
       - "font-jetbrains-mono-nerd-font" # Patched font with icons
       - "google-cloud-sdk" # Google Cloud SDK
       - "pppc-utility" # Privacy Preferences Policy Control (PPPC) Utility - https://github.com/jamf/PPPC-Utility
+      - "prusaslicer" # 3D printing slicer
       - "powershell" # Microsoft PowerShell
       - "viscosity" # OpenVPN client
