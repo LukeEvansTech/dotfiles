@@ -40,4 +40,5 @@ packages:
       - "pppc-utility" # Privacy Preferences Policy Control (PPPC) Utility - https://github.com/jamf/PPPC-Utility
       - "prusaslicer" # 3D printing slicer
       - "powershell" # Microsoft PowerShell
+      - "royal-tsx" # Remote desktop management tool
       - "viscosity" # OpenVPN client
