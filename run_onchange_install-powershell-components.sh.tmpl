@@ -234,63 +234,70 @@ function Install-RequiredScript {
             }
             # Handle update with cleanup
             elseif ($Update) {
+                Write-Status "Checking for updates for script: $Name" -Type Info
                 # Check if there's a newer version available
                 $currentVersion = $latestInstalled.Version
+                Write-Status "Current installed version of ${Name}: $currentVersion" -Type Info
                 try {
-                    $onlineScript = Find-Script -Name $Name -ErrorAction Stop
+                    Write-Status "Running Find-Script -Name ${Name}" -Type Info
+                    $onlineScript = Find-Script -Name ${Name} -ErrorAction Stop
                     $onlineVersion = $onlineScript.Version
+                    Write-Status "Found online version of ${Name}: $onlineVersion" -Type Info
                     
                     if ([Version]$onlineVersion -gt [Version]$currentVersion) {
-                        Write-Status "Newer version available for script $Name ($currentVersion -> $onlineVersion)" -Type Info
-                        Write-Status "Updating script: $Name" -Type Info
-                        Update-Script -Name $Name -Force -ErrorAction Stop
+                        Write-Status "Newer version available for script ${Name} ($currentVersion -> $onlineVersion)" -Type Info
+                        Write-Status "Attempting Update-Script -Name ${Name} -Force" -Type Info
+                        Update-Script -Name ${Name} -Force -ErrorAction Stop
+                        Write-Status "Update-Script command completed for ${Name}" -Type Info
                         
                         # Clean up old versions if not keeping previous versions
                         if (-not $KeepPreviousVersions) {
-                            $newVersions = Get-InstalledScript -Name $Name | Sort-Object Version -Descending
+                            $newVersions = Get-InstalledScript -Name ${Name} | Sort-Object Version -Descending
                             $latestVersion = $newVersions | Select-Object -First 1
                             $oldVersions = $newVersions | Where-Object { $_.Version -ne $latestVersion.Version }
                             
                             if ($oldVersions) {
-                                Write-Status "Removing previous versions of script: $Name" -Type Info
+                                Write-Status "Removing previous versions of script: ${Name}" -Type Info
                                 foreach ($oldVersion in $oldVersions) {
                                     try {
                                         # Uninstall old version
-                                        Uninstall-Script -Name $Name -RequiredVersion $oldVersion.Version -Force -ErrorAction Stop
-                                        Write-Status "Removed version $($oldVersion.Version) of script $Name" -Type Success
+                                        Uninstall-Script -Name ${Name} -RequiredVersion $oldVersion.Version -Force -ErrorAction Stop
+                                        Write-Status "Removed version $($oldVersion.Version) of script ${Name}" -Type Success
                                     } catch {
-                                        Write-Status ("Failed to remove version " + $oldVersion.Version + " of script $Name - " + $_) -Type Warning
+                                        Write-Status ("Failed to remove version " + $oldVersion.Version + " of script ${Name} - " + $_) -Type Warning
                                     }
                                 }
                             }
                         }
                         
-                        Write-Status "Script updated: $Name" -Type Success
+                        Write-Status "Script updated: ${Name}" -Type Success
                     } else {
-                        Write-Status "Script $Name is already at the latest version ($currentVersion)" -Type Info
+                        Write-Status "Script ${Name} is already at the latest version ($currentVersion)" -Type Info
                     }
                 } catch {
-                    Write-Status ("Failed to check for updates for script $Name - " + $_) -Type Warning
+                    Write-Status ("Failed to check for/find updates for script ${Name}. Error: " + $_.Exception.Message) -Type Warning
+                    Write-Status ("Full error details: " + ($_ | Out-String)) -Type Warning
                 }
             }
             else {
-                Write-Status "Script already installed: $Name" -Type Info
+                Write-Status "Script already installed: ${Name}" -Type Info
             }
         }
         else {
             if ($Version) {
-                Write-Status "Installing pinned version $Version of script: $Name" -Type Info
-                Install-Script -Name $Name -RequiredVersion $Version -Force -Scope CurrentUser -ErrorAction Stop
-                Write-Status "Pinned version $Version of script $Name installed" -Type Success
+                Write-Status "Installing pinned version $Version of script: ${Name}" -Type Info
+                Install-Script -Name ${Name} -RequiredVersion $Version -Force -Scope CurrentUser -ErrorAction Stop
+                Write-Status "Pinned version $Version of script ${Name} installed" -Type Success
             } else {
-                Write-Status "Installing latest version of script: $Name" -Type Info
-                Install-Script -Name $Name -Force -Scope CurrentUser -ErrorAction Stop
-                Write-Status "Script installed: $Name" -Type Success
+                Write-Status "Installing latest version of script: ${Name}" -Type Info
+                Install-Script -Name ${Name} -Force -Scope CurrentUser -ErrorAction Stop
+                Write-Status "Script installed: ${Name}" -Type Success
             }
         }
     }
     catch {
-        Write-Status ("Failed to install/update script " + $Name + " - " + $_) -Type Error
+        Write-Status ("Failed to install/update script ${Name}. Error: " + $_.Exception.Message) -Type Error
+        Write-Status ("Full error details: " + ($_ | Out-String)) -Type Error
     }
 }
 
