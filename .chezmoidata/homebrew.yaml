@@ -1,44 +1,66 @@
 packages:
   darwin:
+    taps:
+      - "domt4/autoupdate" # Homebrew auto-update tap
+      - "hudochenkov/sshpass" # sshpass utility tap
     brews:
-      - "atuin" # Atuin replaces your existing shell history with a SQLite database, and records additional context for your commands.
+      - "actionlint" # Static checker for GitHub Actions workflow files
+      - "aider" # AI pair programming in your terminal
+      - "atuin" # Atuin replaces your existing shell history with a SQLite database, and records additional context for your commands
       - "bash" # Bourne Again SHell, Unix command interpreter
       - "bitwarden-cli" # Command-line interface for Bitwarden password manager
+      - "chezmoi" # Manage your dotfiles across multiple machines
       - "coreutils" # GNU core utilities
+      - "dos2unix" # Convert text between DOS, UNIX, and Mac formats
       - "duti" # Tool to select default applications for document types
       - "fzf" # Command-line fuzzy finder
-      - "git" # Distributed version control system
+      - "gemini-cli" # CLI for Google Gemini AI
+      - "gh" # GitHub command-line tool
       - "go" # Open source programming language
       - "grep" # GNU grep, egrep and fgrep
+      - "hudochenkov/sshpass/sshpass" # SSH password authentication
       - "jq" # Lightweight and flexible command-line JSON processor
-      - "mise" # Development tool version manager (formerly rtx)
+      - "lefthook" # Fast and powerful Git hooks manager
       - "minijinja-cli" # Command-line interface for MiniJinja
+      - "mise" # Development tool version manager (formerly rtx)
       - "mono-libgdiplus" # Mono's GDI+ compatibility layer - ImportExcel Module Cannot Autosize. Please run the following command to install dependencies: brew install mono-libgdiplus
       - "moreutils" # Collection of Unix tools
       - "nmap" # Port scanning utility for large networks
-      - "oh-my-posh" 
+      - "oh-my-posh" # Prompt theme engine for any shell
+      - "ollama" # Local LLM runner
       - "openssh" # OpenBSD freely-licensed SSH connectivity tools
       - "pandoc" # Universal markup converter
+      - "pinentry-mac" # Pinentry for GPG on Mac
       - "pipx" # Install and run Python applications in isolated environments
       - "pwgen" # Password generator
-      - "python" # Interpreted, interactive, object-oriented programming language
       - "rclone" # Manage cloud storage
       - "restic" # Fast, secure, efficient backup program
       - "shfmt" # Format shell programs
       - "sops" # Secrets
+      - "terraform" # Infrastructure as code tool
+      - "uv" # Extremely fast Python package installer and resolver
       - "wget" # Internet file retriever
+      - "yamlfmt" # Format YAML files
+      - "yamllint" # Linter for YAML files
     casks:
       - "1password-cli" # Command-line interface for 1Password
       - "aptakube" # Kubernetes UI manager
+      - "chatgpt" # OpenAI ChatGPT desktop app
       - "cleanshot" # Screenshot and screen recording tool
+      - "codex" # Code editor
+      - "drawio" # Diagram and flowchart software
+      - "electrum" # Bitcoin wallet
       - "font-fira-code" # Monospace font with programming ligatures
       - "font-fira-code-nerd-font" # Patched font with icons
       - "font-fira-mono-nerd-font" # Patched font with icons
       - "font-jetbrains-mono" # Monospace font for developers
       - "font-jetbrains-mono-nerd-font" # Patched font with icons
+      - "font-open-sans" # Open Sans font family
+      - "gcloud-cli" # Google Cloud CLI
       - "google-cloud-sdk" # Google Cloud SDK
-      - "pppc-utility" # Privacy Preferences Policy Control (PPPC) Utility - https://github.com/jamf/PPPC-Utility
-      - "prusaslicer" # 3D printing slicer
       - "powershell" # Microsoft PowerShell
+      - "pppc-utility" # Privacy Preferences Policy Control (PPPC) Utility - https://github.com/jamf/PPPC-Utility
+      - "proxy-audio-device" # Virtual audio device for routing audio
+      - "prusaslicer" # 3D printing slicer
       - "royal-tsx" # Remote desktop management tool
       - "viscosity" # OpenVPN client
