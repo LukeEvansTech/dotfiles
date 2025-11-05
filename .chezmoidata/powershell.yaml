@@ -6,14 +6,22 @@ powershell:
     - "Terminal-Icons"    # File and folder icons
 
     # Utility modules
-    - "Catesta"             # PowerShell module and vault project generator.
+    - "Catesta"             # PowerShell module and vault project generator
     - "ImportExcel"         # Excel manipulation
-    - "InvokeBuild"        # Build automation
+    - "InvokeBuild"         # Build automation
+    - "joshooaj.PSPushover" # Pushover notification API client
+    - "Maester"             # Microsoft 365 security testing framework
     - "Pester"              # Testing framework
-    - "platyPS@0.12.0"      # Write PowerShell External Help in Markdown - https://github.com/techthoughts2/Catesta/issues/48
+    - "Plaster"             # Template-based file and project generator
+    - "platyPS@0.12.0"      # Write PowerShell External Help in Markdown - Pinned for Catesta compatibility (requires exactly 0.12.0) - https://github.com/techthoughts2/Catesta/issues/48
+    - "PSAISuite"           # AI-powered PowerShell tools
     - "PSFzf"               # Fuzzy finder integration
-    - "PSScriptAnalyzer"    # Static code analyzer
+    - "PSFramework"         # Framework for developing PowerShell modules
     - "PSModuleDevelopment" # Module development tools
+    - "PSReddit"            # Reddit API wrapper for PowerShell
+    - "PSScriptAnalyzer"    # Static code analyzer
+    - "string"              # String manipulation utilities
+    - "Uninstall-Graph"     # Tool to uninstall Microsoft Graph modules
     - "VMware.PowerCLI"     # VMware PowerCLI
 
     # Microsoft modules
@@ -26,4 +34,4 @@ powershell:
 
   scripts:
     # PowerShell scripts to install
-    - "IntuneBrew"        # Example script for Intune management
+    - "IntuneBrew"        # Intune management script for Mac
