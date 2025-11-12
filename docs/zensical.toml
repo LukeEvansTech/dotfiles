@@ -1,0 +1,47 @@
+[project]
+site_name = "Dotfiles & System Configuration"
+site_description = "Personal macOS system configuration and dotfiles managed with chezmoi"
+site_author = "LukeEvansTech"
+site_url = "https://lukevanstech.github.io/dotfiles/"
+copyright = "Copyright &copy; 2025 LukeEvansTech"
+generator = false
+
+docs_dir = "docs"
+site_dir = "site"
+use_directory_urls = true
+dev_addr = "localhost:8000"
+
+# Custom CSS to hide Zensical branding
+extra_css = ["assets/stylesheets/custom.css"]
+
+# Repository integration
+repo_url = "https://github.com/LukeEvansTech/dotfiles"
+repo_name = "GitHub"
+edit_uri = "edit/main/docs/docs"
+
+# Theme configuration
+[project.theme]
+name = "material"
+variant = "modern"
+language = "en"
+
+# Color schemes with automatic system preference detection
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "indigo"
+accent = "indigo"
+
+[project.theme.palette.toggle]
+icon = "material/brightness-7"
+name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "indigo"
+accent = "indigo"
+
+[project.theme.palette.toggle]
+icon = "material/brightness-4"
+name = "Switch to light mode"
