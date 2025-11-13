@@ -1,18 +1,18 @@
-/* Hide only the "Made with Zensical" text in footer */
+/* Hide "Made with Zensical" and "Made with" text in footer */
+.md-copyright {
+  font-size: 0 !important;
+}
+
+.md-copyright__highlight {
+  font-size: 0.64rem !important;
+}
+
+/* Hide Zensical link */
 .md-copyright > a[href*="zensical.org"] {
   display: none !important;
 }
 
-.md-copyright > a[href*="zensical.org"] + * {
-  display: none !important;
-}
-
-/* Hide the "Made with" text that precedes the Zensical link */
-.md-copyright {
-  display: flex;
-  flex-direction: column;
-}
-
+/* Hide any text nodes in copyright (includes "Made with") */
 .md-copyright > *:not(.md-copyright__highlight) {
   display: none !important;
 }
