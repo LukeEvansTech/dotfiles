@@ -2,7 +2,7 @@
 site_name = "Dotfiles & System Configuration"
 site_description = "Personal macOS system configuration and dotfiles managed with chezmoi"
 site_author = "LukeEvansTech"
-site_url = "https://lukevanstech.github.io/dotfiles/"
+site_url = "https://lukeevanstech.github.io/dotfiles/"
 copyright = "Copyright &copy; 2025 LukeEvansTech"
 generator = false
 
